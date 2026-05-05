@@ -1,5 +1,6 @@
 package com.BM470.config;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -10,6 +11,7 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
@@ -21,39 +23,46 @@ public class AppConfig {
     @Autowired
     private Environment env;
 
+    // KESİN ÇÖZÜM: Veritabanı bağlantısını Spring'e özel bir DataSource olarak tanımlıyoruz.
+    @Bean
+    public DataSource dataSource() {
+        ComboPooledDataSource dataSource = new ComboPooledDataSource();
+        try {
+            dataSource.setDriverClass(env.getProperty("mysql.driver"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        dataSource.setJdbcUrl(env.getProperty("mysql.url"));
+        dataSource.setUser(env.getProperty("mysql.user"));
+        dataSource.setPassword(env.getProperty("mysql.password"));
+
+        // C3P0 Havuz Ayarları
+        dataSource.setMinPoolSize(Integer.parseInt(env.getProperty("hibernate.c3p0.min_size", "5")));
+        dataSource.setMaxPoolSize(Integer.parseInt(env.getProperty("hibernate.c3p0.max_size", "200")));
+        return dataSource;
+    }
+
     @Bean
     public LocalSessionFactoryBean getSessionFactory() {
         LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
+
+        // DATASOURCE'U HIBERNATE'E BAĞLIYORUZ: Spring artık oturumları (Session) otomatik yönetecek!
+        factoryBean.setDataSource(dataSource());
+
         Properties props = new Properties();
-
-        // JDBC Ayarları
-        props.put("hibernate.connection.driver_class", env.getProperty("mysql.driver"));
-        props.put("hibernate.connection.url", env.getProperty("mysql.url"));
-        props.put("hibernate.connection.username", env.getProperty("mysql.user"));
-        props.put("hibernate.connection.password", env.getProperty("mysql.password"));
-
-        // Hibernate Ayarları
         props.put("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
         props.put("hibernate.hbm2ddl.auto", env.getProperty("hibernate.hbm2ddl.auto"));
         props.put("hibernate.dialect", env.getProperty("hibernate.dialect"));
 
-        // C3P0 Ayarları
-        props.put("hibernate.c3p0.min_size", env.getProperty("hibernate.c3p0.min_size"));
-        props.put("hibernate.c3p0.max_size", env.getProperty("hibernate.c3p0.max_size"));
-        props.put("hibernate.c3p0.acquire_increment", env.getProperty("hibernate.c3p0.acquire_increment"));
-        props.put("hibernate.c3p0.timeout", env.getProperty("hibernate.c3p0.timeout"));
-        props.put("hibernate.c3p0.max_statements", env.getProperty("hibernate.c3p0.max_statements"));
-
         factoryBean.setHibernateProperties(props);
-        // Entity sınıflarımızın bulunacağı paketi gösteriyoruz
         factoryBean.setPackagesToScan("com.BM470.entity");
         return factoryBean;
     }
 
     @Bean
-    public HibernateTransactionManager getTransactionManager() {
+    public HibernateTransactionManager getTransactionManager(org.hibernate.SessionFactory sessionFactory) {
         HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-        transactionManager.setSessionFactory(getSessionFactory().getObject());
+        transactionManager.setSessionFactory(sessionFactory);
         return transactionManager;
     }
 }

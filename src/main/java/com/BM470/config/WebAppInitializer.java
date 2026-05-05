@@ -13,7 +13,8 @@ public class WebAppInitializer implements WebApplicationInitializer {
     @Override
     public void onStartup(ServletContext servletContext) {
         AnnotationConfigWebApplicationContext context = getContext();
-        servletContext.addListener(new ContextLoaderListener(context));
+
+        // ContextLoaderListener satırını SİLDİK! (Proxy ve Transaction'ların bozulmaması için)
 
         // DispatcherServlet Tanımlaması
         ServletRegistration.Dynamic dispatcherServlet =
