@@ -13,27 +13,20 @@ public class WebAppInitializer implements WebApplicationInitializer {
     @Override
     public void onStartup(ServletContext servletContext) {
         AnnotationConfigWebApplicationContext context = getContext();
-
-        // ContextLoaderListener satırını SİLDİK! (Proxy ve Transaction'ların bozulmaması için)
-
-        // DispatcherServlet Tanımlaması
-        ServletRegistration.Dynamic dispatcherServlet =
-                servletContext.addServlet("DispatcherServlet", new DispatcherServlet(context));
+        servletContext.addListener(new ContextLoaderListener(context));
+        ServletRegistration.Dynamic dispatcherServlet = servletContext.addServlet("DispatcherServlet",
+                new DispatcherServlet(context));
         dispatcherServlet.setLoadOnStartup(1);
         dispatcherServlet.addMapping("/");
 
-        // 404 Hatalarını Özel Sayfaya Yönlendirebilmek İçin Zorunlu Ayar
-        dispatcherServlet.setInitParameter("throwExceptionIfNoHandlerFound", "true");
-
-        // Tüm Request ve Responseları UTF-8'e zorlayan filtre
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
         characterEncodingFilter.setEncoding("UTF-8");
         characterEncodingFilter.setForceEncoding(true);
         characterEncodingFilter.setForceRequestEncoding(true);
         characterEncodingFilter.setForceResponseEncoding(true);
+        servletContext.addFilter("characterEncodingFilter", characterEncodingFilter).addMappingForUrlPatterns(null,
+                false, "/*");
 
-        servletContext.addFilter("characterEncodingFilter", characterEncodingFilter)
-                .addMappingForUrlPatterns(null, false, "/*");
     }
 
     private AnnotationConfigWebApplicationContext getContext() {
