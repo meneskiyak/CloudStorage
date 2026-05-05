@@ -9,9 +9,9 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.skip.test>true</maven.skip.test>
-    <spring.framework.version>7.0.5</spring.framework.version>
+    <spring.framework.version>6.2.7</spring.framework.version>
     <mysql.driver.version>9.6.0</mysql.driver.version>
-    <hibernate.version>7.2.5.Final</hibernate.version>
+    <hibernate.version>6.6.13.Final</hibernate.version>
     <c3p0.version>0.12.0</c3p0.version>
     <slf4j.version>2.0.17</slf4j.version>
     <log4j.version>2.25.3</log4j.version>
@@ -96,7 +96,7 @@
     </dependency>
     <!--  Hibernate c3p0 connection pool  -->
     <dependency>
-      <groupId>org.hibernate</groupId>
+      <groupId>org.hibernate.orm</groupId>
       <artifactId>hibernate-c3p0</artifactId>
       <version>${hibernate.version}</version>
     </dependency>
