@@ -29,7 +29,12 @@ public class FileItemDao {
         getSession().persist(fileItem);
     }
 
-    // 2. Belirli bir klasördeki (veya ana dizindeki) "Silinmemiş" dosyaları getirme
+    // 2. ID'ye Göre Dosya Bulma (Silme veya indirme işlemi öncesi gerekir)
+    public FileItem findById(Long id) {
+        return getSession().get(FileItem.class, id);
+    }
+
+    // İSTER 1: Klasöre ve Sahibe Göre Listeleme (Zaten vardı, koruyoruz)
     public List<FileItem> findFilesByFolderAndOwner(Folder folder, User owner) {
         Session session = getSession();
         CriteriaBuilder builder = session.getCriteriaBuilder();
@@ -37,19 +42,53 @@ public class FileItemDao {
         Root<FileItem> root = criteria.from(FileItem.class);
 
         Predicate ownerCondition = builder.equal(root.get("owner"), owner);
-        Predicate notDeletedCondition = builder.isFalse(root.get("isDeleted"));
-        Predicate folderCondition;
+        Predicate notDeletedCondition = builder.isFalse(root.get("isDeleted")); // Sadece silinmemişler
+        Predicate folderCondition = (folder == null)
+                ? builder.isNull(root.get("folder"))
+                : builder.equal(root.get("folder"), folder);
 
-        // Eğer folder null ise, kullanıcı ana dizindedir (Root)
-        if (folder == null) {
-            folderCondition = builder.isNull(root.get("folder"));
-        } else {
-            folderCondition = builder.equal(root.get("folder"), folder);
+        criteria.select(root).where(builder.and(ownerCondition, notDeletedCondition, folderCondition));
+        return session.createQuery(criteria).getResultList();
+    }
+
+    // İSTER 2: İsme veya Türe Göre Arama (Dynamic Criteria Query)
+    public List<FileItem> searchFiles(User owner, String keyword, String mimeType) {
+        Session session = getSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<FileItem> criteria = builder.createQuery(FileItem.class);
+        Root<FileItem> root = criteria.from(FileItem.class);
+
+        // Temel şartlar: Bu kullanıcıya ait ve silinmemiş olmalı
+        Predicate finalPredicate = builder.and(
+                builder.equal(root.get("owner"), owner),
+                builder.isFalse(root.get("isDeleted"))
+        );
+
+        // Kullanıcı bir isim (keyword) girdiyse, dosya adında LIKE araması yap
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            Predicate namePredicate = builder.like(
+                    builder.lower(root.get("originalName")),
+                    "%" + keyword.toLowerCase() + "%"
+            );
+            finalPredicate = builder.and(finalPredicate, namePredicate);
         }
 
-        // Tüm şartları birleştiriyoruz (AND operatörü ile)
-        criteria.select(root).where(builder.and(ownerCondition, notDeletedCondition, folderCondition));
+        // Kullanıcı bir tür (örn: image/png, pdf vs.) seçtiyse MIME tipinde LIKE araması yap
+        if (mimeType != null && !mimeType.trim().isEmpty()) {
+            Predicate typePredicate = builder.like(
+                    builder.lower(root.get("mimeType")),
+                    "%" + mimeType.toLowerCase() + "%"
+            );
+            finalPredicate = builder.and(finalPredicate, typePredicate);
+        }
 
+        criteria.select(root).where(finalPredicate);
         return session.createQuery(criteria).getResultList();
+    }
+
+    // İSTER 3: Soft Delete (Veritabanından uçurmak yerine bayrağı true yapıyoruz)
+    public void softDelete(FileItem fileItem) {
+        fileItem.setIsDeleted(true);
+        getSession().merge(fileItem); // Güncelleme işlemi
     }
 }

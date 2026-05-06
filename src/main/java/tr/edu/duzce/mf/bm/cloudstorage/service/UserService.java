@@ -7,28 +7,24 @@ import tr.edu.duzce.mf.bm.cloudstorage.dao.UserDao;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 
 @Service
-@Transactional // Bu sınıftaki tüm veritabanı işlemleri Spring tarafından güvenle yönetilecek
+@Transactional // Yol haritasındaki zorunlu ister
 public class UserService {
 
     @Autowired
     private UserDao userDao;
 
-    // Yeni Kullanıcı Kaydı
     public void registerUser(User user) {
-
-        // HASHLEME EKLENECEK!!!!
+        // TODO: Bcrypt hashleme ve mail onay mantığı yazılacak.
         userDao.save(user);
     }
 
-    // Kullanıcı Girişi (Login) Kontrolü
     public User login(String email, String password) {
         User user = userDao.findByEmail(email);
 
+        // TODO: İleride burada password.equals() yerine BCrypt.checkpw() kullanılacak.
         if (user != null && user.getPasswordHash().equals(password)) {
             return user;
         }
-
-        // Eşleşme yoksa (hatalı şifre veya email) null döndür
         return null;
     }
 }
