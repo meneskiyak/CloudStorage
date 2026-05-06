@@ -3,6 +3,7 @@ package tr.edu.duzce.mf.bm.cloudstorage.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -10,19 +11,24 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
+import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import org.springframework.web.servlet.resource.PathResourceResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
+import tr.edu.duzce.mf.bm.cloudstorage.interceptor.LoggingInterceptor;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Configuration
 @EnableWebMvc
+// Slaytlardaki paket isimlendirmesine uyum ve bizim yeni controller'lar
 @ComponentScan(basePackages = {"tr.edu.duzce.mf.bm.cloudstorage"})
 public class WebConfig implements WebMvcConfigurer {
+
     @Bean
     public InternalResourceViewResolver jspViewResolver() {
         InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
@@ -35,9 +41,11 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/resources/**").addResourceLocations("/resources/images/").resourceChain(true).addResolver(new PathResourceResolver());
+        registry.addResourceHandler("/resources/**")
+                .addResourceLocations("/resources/images/")
+                .resourceChain(true)
+                .addResolver(new PathResourceResolver());
     }
-
 
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
@@ -52,5 +60,44 @@ public class WebConfig implements WebMvcConfigurer {
         converters.add(stringConverter);
     }
 
+    // --- HOCANIN SLAYTLARINA BİREBİR UYGUN i18n AYARLARI ---
 
+    // 1. Slayttaki "Örnek ResourceBundleMessageSource Tanımı"
+    @Bean(name = "messageSource")
+    public ReloadableResourceBundleMessageSource getMessageSource() {
+        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasename("classpath:messages"); // src/main/resources altında aranacak
+        messageSource.setDefaultEncoding("UTF-8");
+        messageSource.setFallbackToSystemLocale(true);
+        return messageSource;
+    }
+
+    // 2. Slayttaki "Session (Oturum) Locale Çözümleyicisi"
+    @Bean
+    public SessionLocaleResolver localeResolver(){
+        SessionLocaleResolver localeResolver = new SessionLocaleResolver();
+        // Slaytta Locale.forLanguageTag("tr-TR") kullanılmış, aynısını yapıyoruz
+        localeResolver.setDefaultLocale(Locale.forLanguageTag("tr-TR"));
+        return localeResolver;
+    }
+
+    // 3. Slayttaki "Oturum Locale Dinleyicisi/Interceptor'ı"
+    @Bean
+    public LocaleChangeInterceptor localeInterceptor(){
+        LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
+        interceptor.setParamName("lang"); // URL'de ?lang=en_US gibi arayacak
+        return interceptor;
+    }
+
+    // --- INTERCEPTOR KAYITLARI ---
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // Dil değişimini izleyen interceptor'ı kaydediyoruz (Slayttaki gibi)
+        registry.addInterceptor(localeInterceptor()).addPathPatterns("/*");
+
+        // Aşama 3'te yazdığımız zorunlu Loglama Interceptor'ını kaydediyoruz
+        registry.addInterceptor(new LoggingInterceptor())
+                .addPathPatterns("/**")
+                .excludePathPatterns("/resources/**"); // Statik dosyaları loglama
+    }
 }
