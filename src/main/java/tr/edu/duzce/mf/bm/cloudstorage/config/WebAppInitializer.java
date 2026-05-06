@@ -1,4 +1,4 @@
-package com.BM470.config;
+package tr.edu.duzce.mf.bm.cloudstorage.config;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletRegistration;
@@ -31,7 +31,7 @@ public class WebAppInitializer implements WebApplicationInitializer {
 
     private AnnotationConfigWebApplicationContext getContext() {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-        context.setConfigLocation("com.BM470.config");
+        context.setConfigLocation("tr.edu.duzce.mf.bm.cloudstorage.config");
         return context;
     }
 }

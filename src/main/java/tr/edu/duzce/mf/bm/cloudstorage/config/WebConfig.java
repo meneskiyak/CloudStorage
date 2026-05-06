@@ -1,4 +1,4 @@
-package com.BM470.config;
+package tr.edu.duzce.mf.bm.cloudstorage.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -21,7 +21,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackages = {"com.BM470"})
+@ComponentScan(basePackages = {"tr.edu.duzce.mf.bm.cloudstorage"})
 public class WebConfig implements WebMvcConfigurer {
     @Bean
     public InternalResourceViewResolver jspViewResolver() {

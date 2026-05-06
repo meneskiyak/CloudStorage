@@ -1,4 +1,4 @@
-package com.BM470.config;
+package tr.edu.duzce.mf.bm.cloudstorage.config;
 
 import static org.hibernate.cfg.JdbcSettings.*;
 import static org.hibernate.cfg.MappingSettings.DEFAULT_SCHEMA;
@@ -16,9 +16,7 @@ import java.util.Properties;
 @PropertySource(value = "classpath:hibernate.properties", encoding = "UTF-8")
 @EnableTransactionManagement
 @Configuration
-@ComponentScan(basePackages = {"com.BM470"})
-//@ComponentScans(value = { @ComponentScan("tr.edu.duzce.mf.bm.bm470.service"),
-//@ComponentScan("tr.edu.duzce.mf.bm.bm470.dao") })
+@ComponentScan(basePackages = {"tr.edu.duzce.mf.bm.cloudstorage"})
 public class AppConfig {
     @Autowired
     private Environment env;
@@ -42,7 +40,7 @@ public class AppConfig {
         props.put(C3P0_MAX_STATEMENTS, env.getProperty("hibernate.c3p0.max_statements"));
         props.put(C3P0_CONFIG_PREFIX + ".initialPoolSize", env.getProperty("hibernate.c3p0.initialPoolSize"));
         factoryBean.setHibernateProperties(props);
-        factoryBean.setPackagesToScan("com.BM471.entity");
+        factoryBean.setPackagesToScan("tr.edu.duzce.mf.bm.cloudstorage.entity");
         return factoryBean;
     }
 
