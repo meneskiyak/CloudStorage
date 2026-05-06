@@ -14,18 +14,14 @@ public class AdminService {
     private UserDao userDao;
 
     // Adminin bir kullanıcının Upload Kotasını (Örn: 5 GB) artırma/azaltma işlemi
-    public void updateUserUploadLimit(String userEmail, Long newLimitBytes) throws Exception {
-        User user = userDao.findByEmail(userEmail);
-
+    public void updateUserUploadLimit(String email, Long newLimit) throws Exception {
+        User user = userDao.findByEmail(email);
         if (user == null) {
             throw new Exception("Kullanıcı bulunamadı!");
         }
+        user.setUploadLimitBytes(newLimit);
 
-        // Eğer yeni limit, kullanıcının halihazırda kullandığı alandan daha küçükse hata ver
-        if (newLimitBytes < user.getUsedBytes()) {
-            throw new Exception("Hata: Yeni limit, kullanıcının mevcut doluluğundan küçük olamaz!");
-        }
-
-        user.setUploadLimitBytes(newLimitBytes);
+        userDao.save(user);
     }
+
 }

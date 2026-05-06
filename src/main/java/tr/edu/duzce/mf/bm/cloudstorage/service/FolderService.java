@@ -33,4 +33,14 @@ public class FolderService {
             folder.setParent(newParent);
         }
     }
+
+    public void deleteFolder(Long folderId) throws Exception {
+        Folder folder = folderDao.findById(folderId);
+        if (folder == null) {
+            throw new Exception("Klasör bulunamadı!");
+        }
+
+        // Eğer klasör boş değilse silme gibi ek kontroller buraya yazılabilir
+        folderDao.delete(folder);
+    }
 }

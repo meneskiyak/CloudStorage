@@ -34,6 +34,11 @@ public class FolderDao {
         return getSession().get(Folder.class, id);
     }
 
+    public void delete(Folder folder) {
+        // Slayt 8'deki remove metodu kullanımı
+        getSession().remove(folder);
+    }
+
     // 3. Kullanıcının Belirli Bir Dizindeki Alt Klasörlerini Getirme (Recursive Gezinme İçin)
     public List<Folder> findByParentAndOwner(Folder parent, User owner) {
         Session session = getSession();
@@ -56,4 +61,5 @@ public class FolderDao {
         criteria.select(root).where(builder.and(ownerCondition, notDeletedCondition, parentCondition));
         return session.createQuery(criteria).getResultList();
     }
+
 }
