@@ -4,7 +4,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import tr.edu.duzce.mf.bm.cloudstorage.entity.FileShare;
+import tr.edu.duzce.mf.bm.cloudstorage.entity.Share;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -23,16 +23,16 @@ public class FileShareDao {
     }
 
     // 1. Yeni Bir Paylaşım İzni Kaydetme
-    public void save(FileShare fileShare) {
-        getSession().persist(fileShare);
+    public void save(Share share) {
+        getSession().persist(share);
     }
 
     // 2. "Benimle Paylaşılanlar" Listesini Getirme
-    public List<FileShare> findSharedWithUser(User user) {
+    public List<Share> findSharedWithUser(User user) {
         Session session = getSession();
         CriteriaBuilder builder = session.getCriteriaBuilder();
-        CriteriaQuery<FileShare> criteria = builder.createQuery(FileShare.class);
-        Root<FileShare> root = criteria.from(FileShare.class);
+        CriteriaQuery<Share> criteria = builder.createQuery(Share.class);
+        Root<Share> root = criteria.from(Share.class);
 
         // Kural: sharedWithUser alanı giriş yapan kullanıcıya eşit olanları getir
         criteria.select(root).where(builder.equal(root.get("sharedWithUser"), user));

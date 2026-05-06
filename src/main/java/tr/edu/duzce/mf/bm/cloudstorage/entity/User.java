@@ -1,6 +1,8 @@
 package tr.edu.duzce.mf.bm.cloudstorage.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -8,6 +10,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
 public class User implements Serializable {
 
     @Id
@@ -54,39 +58,15 @@ public class User implements Serializable {
         createdAt = new Date();
     }
 
-    // Getter / Setter
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    @Column(name = "updated_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date updatedAt;
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = new Date();
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getPasswordHash() { return passwordHash; }
-    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
-
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
-
-    public Long getUploadLimitBytes() { return uploadLimitBytes; }
-    public void setUploadLimitBytes(Long uploadLimitBytes) { this.uploadLimitBytes = uploadLimitBytes; }
-
-    public Long getUsedBytes() { return usedBytes; }
-    public void setUsedBytes(Long usedBytes) { this.usedBytes = usedBytes; }
-
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
-
-    public Date getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
-
-    public List<Folder> getFolders() { return folders; }
-    public void setFolders(List<Folder> folders) { this.folders = folders; }
-
-    public List<FileItem> getFiles() { return files; }
-    public void setFiles(List<FileItem> files) { this.files = files; }
 
     // Limit kontrolü için yardımcı — @Transient ile DB'ye yazılmaz
     @Transient

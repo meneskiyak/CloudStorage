@@ -1,12 +1,17 @@
 package tr.edu.duzce.mf.bm.cloudstorage.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
 @Entity
 @Table(name = "file_items")
+@Getter
+@Setter
 public class FileItem implements Serializable {
 
     @Id
@@ -42,7 +47,7 @@ public class FileItem implements Serializable {
     private User owner;
 
     @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted = false;
+    private boolean deleted = false;
 
     @Column(name = "created_at", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -54,7 +59,7 @@ public class FileItem implements Serializable {
 
     // Paylaşımlar
     @OneToMany(mappedBy = "file", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<FileShare> shares;
+    private List<Share> shares;
 
     @PrePersist
     protected void onCreate() {
@@ -67,46 +72,9 @@ public class FileItem implements Serializable {
         updatedAt = new Date();
     }
 
-    // Getter / Setter
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getOriginalName() { return originalName; }
-    public void setOriginalName(String originalName) { this.originalName = originalName; }
-
-    public String getStoredName() { return storedName; }
-    public void setStoredName(String storedName) { this.storedName = storedName; }
-
-    public String getStoragePath() { return storagePath; }
-    public void setStoragePath(String storagePath) { this.storagePath = storagePath; }
-
-    public Long getFileSizeBytes() { return fileSizeBytes; }
-    public void setFileSizeBytes(Long fileSizeBytes) { this.fileSizeBytes = fileSizeBytes; }
-
-    public String getMimeType() { return mimeType; }
-    public void setMimeType(String mimeType) { this.mimeType = mimeType; }
-
-    public Folder getFolder() { return folder; }
-    public void setFolder(Folder folder) { this.folder = folder; }
-
-    public User getOwner() { return owner; }
-    public void setOwner(User owner) { this.owner = owner; }
-
-    public Boolean getIsDeleted() { return isDeleted; }
-    public void setIsDeleted(Boolean isDeleted) { this.isDeleted = isDeleted; }
-
-    public Date getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
-
-    public Date getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
-
-    public List<FileShare> getShares() { return shares; }
-    public void setShares(List<FileShare> shares) { this.shares = shares; }
-
     // Tarayıcıda inline gösterilebilir mi? (resim, PDF)
     @Transient
-    public boolean isPreviewable() {
+    public boolean canPreview() {
         if (mimeType == null) return false;
         return mimeType.startsWith("image/") || mimeType.equals("application/pdf");
     }

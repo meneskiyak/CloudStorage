@@ -1,12 +1,17 @@
 package tr.edu.duzce.mf.bm.cloudstorage.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
 @Entity
 @Table(name = "folders")
+@Getter
+@Setter
 public class Folder implements Serializable {
 
     @Id
@@ -27,17 +32,17 @@ public class Folder implements Serializable {
     @JoinColumn(name = "parent_id", nullable = true)
     private Folder parent;
 
-    // Alt klasörler — taşıma/kopyalama işlemlerinde recursive traverse için
-    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Folder> children;
 
-    // Bu klasörün içindeki dosyalar
-    @OneToMany(mappedBy = "folder", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "folder", fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<FileItem> files;
 
     // Soft delete — silinen klasörler hemen DB'den kaldırılmaz
     @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted = false;
+    private boolean deleted = false;  // primitive, sorunsuz getter
 
     @Column(name = "created_at", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -58,35 +63,7 @@ public class Folder implements Serializable {
         updatedAt = new Date();
     }
 
-    // Getter / Setter
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public User getOwner() { return owner; }
-    public void setOwner(User owner) { this.owner = owner; }
-
-    public Folder getParent() { return parent; }
-    public void setParent(Folder parent) { this.parent = parent; }
-
-    public List<Folder> getChildren() { return children; }
-    public void setChildren(List<Folder> children) { this.children = children; }
-
-    public List<FileItem> getFiles() { return files; }
-    public void setFiles(List<FileItem> files) { this.files = files; }
-
-    public Boolean getIsDeleted() { return isDeleted; }
-    public void setIsDeleted(Boolean isDeleted) { this.isDeleted = isDeleted; }
-
-    public Date getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
-
-    public Date getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
-
-    // Root kontrolü
-    @Transient
-    public boolean isRoot() { return parent == null; }
+    public boolean isRoot() {
+        return parent == null;
+    }
 }

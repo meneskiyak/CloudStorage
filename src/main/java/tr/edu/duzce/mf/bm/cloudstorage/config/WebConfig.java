@@ -25,7 +25,6 @@ import java.util.Locale;
 
 @Configuration
 @EnableWebMvc
-// Slaytlardaki paket isimlendirmesine uyum ve bizim yeni controller'lar
 @ComponentScan(basePackages = {"tr.edu.duzce.mf.bm.cloudstorage"})
 public class WebConfig implements WebMvcConfigurer {
 
