@@ -26,6 +26,10 @@ public class FolderService {
         return folderDao.findByParentAndOwner(parent, owner);
     }
 
+    public Folder getFolderById(Long id) {
+        return folderDao.findById(id);
+    }
+
     // Klasör Taşıma (Parent'ı Değiştirme)
     public void moveFolder(Long folderId, Folder newParent) {
         Folder folder = folderDao.findById(folderId);
