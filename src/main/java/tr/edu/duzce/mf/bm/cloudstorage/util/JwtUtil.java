@@ -14,23 +14,23 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * JWT (JSON Web Token) işlemlerini yöneten yardımcı sınıf.
- * HS256 algoritması kullanılarak token üretimi, doğrulama ve veri çıkarma işlemlerini yapar.
+ * JWT (JSON Web Token) işlemlerini yürüten yardımcı bileşen.
+ * Kullanıcı kimlik doğrulama ve yetkilendirme işlemleri için kullanılır.
  */
 @Component
 public class JwtUtil {
 
-    // Gerçek uygulamalarda bu değer bir yapılandırma dosyasından (properties) okunmalıdır.
-    private static final String SECRET_KEY_STRING = "bu_cok_gizli_ve_guclu_bir_anahtar_olmalidir_en_az_256_bit";
-    private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
-
-    // Token geçerlilik süresi: 1 saat
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60;
+    // Güvenlik anahtarı - Gerçek senaryoda bu değer external bir config dosyasından okunmalıdır.
+    private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    
+    // Token geçerlilik süresi: 1 saat (milisaniye cinsinden)
+    private static final long JWT_EXPIRATION = 1000 * 60 * 60;
 
     /**
-     * Kullanıcı nesnesinden JWT üretir.
-     * @param user Token üretilecek kullanıcı
-     * @return Üretilen JWT string'i
+     * Verilen User nesnesi için email ve rol bilgilerini içeren bir JWT üretir.
+     *
+     * @param user JWT üretilecek kullanıcı nesnesi
+     * @return Üretilen JWT string değeri
      */
     public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
@@ -43,14 +43,15 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
+                .signWith(secretKey)
                 .compact();
     }
 
     /**
-     * Token'dan email (subject) bilgisini okur.
-     * @param token JWT string'i
+     * Token içerisinden kullanıcı email bilgisini (subject) ayıklar.
+     *
+     * @param token İşlenecek JWT
      * @return Email adresi
      */
     public String extractEmail(String token) {
@@ -58,15 +59,12 @@ public class JwtUtil {
     }
 
     /**
-     * Token'ın süresinin dolup dolmadığını kontrol eder.
-     * @param token JWT string'i
-     * @return Süresi dolmuşsa true, dolmamışsa false
+     * Token içerisinden son kullanma tarihini ayıklar.
+     *
+     * @param token İşlenecek JWT
+     * @return Son kullanma tarihi
      */
-    public boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
+    public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
@@ -77,19 +75,24 @@ public class JwtUtil {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
 
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
     /**
-     * Token'ın geçerliliğini doğrular.
-     * @param token JWT string'i
-     * @param user Karşılaştırılacak kullanıcı nesnesi
-     * @return Geçerli ise true
+     * Token'ın geçerliliğini ve kullanıcı bilgisiyle eşleşmesini doğrular.
+     *
+     * @param token İşlenecek JWT
+     * @param user  Doğrulanacak kullanıcı nesnesi
+     * @return Token geçerli ise true, aksi halde false
      */
-    public boolean validateToken(String token, User user) {
+    public Boolean validateToken(String token, User user) {
         final String email = extractEmail(token);
         return (email.equals(user.getEmail()) && !isTokenExpired(token));
     }
