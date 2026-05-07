@@ -12,6 +12,7 @@ import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.InvalidPasswordException;
 import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.UserAlreadyExistsException;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 @Service
@@ -28,6 +29,51 @@ public class UserService {
 
     @Autowired
     private UserDao userDao;
+
+    /**
+     * Sistem genelindeki istatistikleri hesaplar.
+     * @return Toplam kota, kullanılan alan ve kullanıcı sayısı bilgilerini içeren Map.
+     */
+    public java.util.Map<String, Object> getGlobalStats() {
+        List<User> users = userDao.findAll();
+        long totalLimit = 0;
+        long totalUsed = 0;
+        int userCount = users.size();
+
+        for (User u : users) {
+            totalLimit += u.getUploadLimitBytes();
+            totalUsed += u.getUsedBytes();
+        }
+
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("totalLimit", totalLimit);
+        stats.put("totalUsed", totalUsed);
+        stats.put("totalFree", Math.max(0, totalLimit - totalUsed));
+        stats.put("userCount", userCount);
+        return stats;
+    }
+
+    /**
+     * Tüm kullanıcıları listeler (Admin paneli için).
+     */
+    public List<User> findAllUsers() {
+        return userDao.findAll();
+    }
+
+    /**
+     * Kullanıcıyı günceller (Rol veya kota değişikliği için).
+     */
+    public void updateUser(User user) {
+        userDao.update(user);
+        logger.info("Kullanıcı bilgileri güncellendi: {}", user.getEmail());
+    }
+
+    /**
+     * ID üzerinden kullanıcı bulur.
+     */
+    public User findById(Long id) {
+        return userDao.findById(id);
+    }
 
     /**
      * Yeni bir kullanıcı kaydeder. E-posta ve şifre kriterlerini kontrol eder.

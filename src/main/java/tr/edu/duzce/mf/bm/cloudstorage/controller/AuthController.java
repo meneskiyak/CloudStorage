@@ -74,6 +74,10 @@ public class AuthController {
             response.addCookie(cookie);
 
             logger.info("Kullanıcı girişi başarılı, çerez eklendi (Süre: {} saniye): {}", cookie.getMaxAge(), email);
+            
+            if ("ADMIN".equals(user.getRole())) {
+                return "redirect:/admin/dashboard";
+            }
             return "redirect:/dashboard";
         }
 
