@@ -32,35 +32,43 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String requestUri = request.getRequestURI();
-        logger.debug("İstek işleniyor: {}", requestUri);
+        logger.debug("Interceptor tetiklendi. URI: {}", requestUri);
 
         // JWT_TOKEN çerezini bul
         String token = null;
         if (request.getCookies() != null) {
+            logger.debug("Çerezler bulundu, JWT_TOKEN aranıyor...");
             token = Arrays.stream(request.getCookies())
                     .filter(c -> "JWT_TOKEN".equals(c.getName()))
                     .map(Cookie::getValue)
                     .findFirst()
                     .orElse(null);
+        } else {
+            logger.debug("İstekte hiç çerez bulunamadı.");
         }
 
         if (token != null) {
+            logger.debug("Token bulundu, doğrulanıyor...");
             try {
                 String email = jwtUtil.extractEmail(token);
+                logger.debug("Token'dan çıkarılan email: {}", email);
                 User user = userService.findByEmail(email);
 
                 if (user != null && jwtUtil.validateToken(token, user)) {
                     logger.debug("JWT doğrulaması başarılı. Kullanıcı: {}", email);
-                    // İstek attribute'una kullanıcıyı ekle (opsiyonel, controller'da kullanılabilir)
                     request.setAttribute("currentUser", user);
                     return true;
+                } else {
+                    logger.warn("Token geçersiz veya kullanıcı bulunamadı! User null mu? {}", (user == null));
                 }
             } catch (Exception e) {
-                logger.error("JWT doğrulama sırasında hata oluştu: {}", e.getMessage());
+                logger.error("JWT ayrıştırma/doğrulama hatası: {}", e.getMessage());
             }
+        } else {
+            logger.warn("İstekte JWT_TOKEN çerezi eksik!");
         }
 
-        logger.warn("Geçersiz veya eksik JWT! /login sayfasına yönlendiriliyor. URI: {}", requestUri);
+        logger.warn("Yetkisiz erişim denemesi! /login sayfasına yönlendiriliyor. URI: {}", requestUri);
         response.sendRedirect(request.getContextPath() + "/login");
         return false;
     }

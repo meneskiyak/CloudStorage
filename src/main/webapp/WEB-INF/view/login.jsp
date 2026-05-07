@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <html>
 <head>
     <title>Bulut Depolama | Giriş Yap</title>
@@ -10,27 +11,30 @@
         <div class="col-md-4">
             <h3 class="text-center mb-4">Sisteme Giriş</h3>
 
-            <%-- Parametrelerden gelen mesajları yakalama --%>
-            <% if(request.getParameter("registered") != null) { %>
-            <div class="alert alert-success">Kayıt başarılı! Lütfen giriş yapın.</div>
-            <% } %>
-            <% if(request.getParameter("logout") != null) { %>
-            <div class="alert alert-info">Başarıyla çıkış yaptınız.</div>
-            <% } %>
-            <% if(request.getAttribute("error") != null) { %>
-            <div class="alert alert-danger"><%= request.getAttribute("error") %></div>
-            <% } %>
+            <c:if test="${not empty param.registered}">
+                <div class="alert alert-success">Kayıt başarılı! Lütfen giriş yapın.</div>
+            </c:if>
+            <c:if test="${not empty param.logout}">
+                <div class="alert alert-info">Başarıyla çıkış yaptınız.</div>
+            </c:if>
+            <c:if test="${not empty error}">
+                <div class="alert alert-danger">${error}</div>
+            </c:if>
 
             <div class="card shadow-sm">
                 <div class="card-body">
                     <form action="${pageContext.request.contextPath}/login" method="POST">
                         <div class="mb-3">
-                            <label>Email Adresi</label>
+                            <label class="form-label">Email Adresi</label>
                             <input type="email" name="email" class="form-control" required>
                         </div>
                         <div class="mb-3">
-                            <label>Şifre</label>
+                            <label class="form-label">Şifre</label>
                             <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" name="rememberMe" class="form-check-input" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">Beni Hatırla</label>
                         </div>
                         <button type="submit" class="btn btn-success w-100">Giriş Yap</button>
                     </form>

@@ -23,27 +23,38 @@ public class JwtUtil {
     // Güvenlik anahtarı - Gerçek senaryoda bu değer external bir config dosyasından okunmalıdır.
     private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     
-    // Token geçerlilik süresi: 1 saat (milisaniye cinsinden)
-    private static final long JWT_EXPIRATION = 1000 * 60 * 60;
+    // Varsayılan token geçerlilik süresi: 1 saat
+    private static final long DEFAULT_EXPIRATION = 1000 * 60 * 60;
+    
+    // Hatırla beni süresi: 7 gün
+    public static final long REMEMBER_ME_EXPIRATION = 1000 * 60 * 60 * 24 * 7;
 
     /**
-     * Verilen User nesnesi için email ve rol bilgilerini içeren bir JWT üretir.
-     *
-     * @param user JWT üretilecek kullanıcı nesnesi
-     * @return Üretilen JWT string değeri
+     * Verilen User nesnesi için JWT üretir. Varsayılan süreyi kullanır.
      */
     public String generateToken(User user) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("role", user.getRole());
-        return createToken(claims, user.getEmail());
+        return generateToken(user, DEFAULT_EXPIRATION);
     }
 
-    private String createToken(Map<String, Object> claims, String subject) {
+    /**
+     * Verilen User nesnesi için belirlenen sürede geçerli bir JWT üretir.
+     *
+     * @param user       JWT üretilecek kullanıcı
+     * @param expiration Milisaniye cinsinden geçerlilik süresi
+     * @return Üretilen JWT
+     */
+    public String generateToken(User user, long expiration) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", user.getRole());
+        return createToken(claims, user.getEmail(), expiration);
+    }
+
+    private String createToken(Map<String, Object> claims, String subject, long expiration) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(secretKey)
                 .compact();
     }
