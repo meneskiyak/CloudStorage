@@ -1,5 +1,6 @@
 package tr.edu.duzce.mf.bm.cloudstorage.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,7 @@ import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import org.springframework.web.servlet.resource.PathResourceResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
+import tr.edu.duzce.mf.bm.cloudstorage.interceptor.JwtAuthInterceptor;
 import tr.edu.duzce.mf.bm.cloudstorage.interceptor.LoggingInterceptor;
 
 import java.nio.charset.StandardCharsets;
@@ -27,6 +29,9 @@ import java.util.Locale;
 @EnableWebMvc
 @ComponentScan(basePackages = {"tr.edu.duzce.mf.bm.cloudstorage"})
 public class WebConfig implements WebMvcConfigurer {
+
+    @Autowired
+    private JwtAuthInterceptor jwtAuthInterceptor;
 
     @Bean
     public InternalResourceViewResolver jspViewResolver() {
@@ -98,5 +103,10 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(new LoggingInterceptor())
                 .addPathPatterns("/**")
                 .excludePathPatterns("/resources/**"); // Statik dosyaları loglama
+
+        // JWT tabanlı kimlik doğrulama interceptor'ını kaydediyoruz
+        registry.addInterceptor(jwtAuthInterceptor)
+                .addPathPatterns("/**") // Tüm yolları koru
+                .excludePathPatterns("/login", "/register", "/resources/**"); // Giriş, kayıt ve statik dosyaları hariç tut
     }
 }

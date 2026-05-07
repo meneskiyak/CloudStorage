@@ -6,7 +6,6 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 @Entity
 @Table(name = "file_items")
@@ -57,9 +56,8 @@ public class FileItem implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
 
-    // Paylaşımlar
-    @OneToMany(mappedBy = "file", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Share> shares;
+    // DİKKAT: @OneToMany(mappedBy = "file") kısmı KESİNLİKLE kaldırıldı
+    // Çünkü Share sınıfında 'file' adında bir değişken yok, 'resourceId' var.
 
     @PrePersist
     protected void onCreate() {
