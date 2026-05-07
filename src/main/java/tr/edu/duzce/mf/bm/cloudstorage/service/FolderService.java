@@ -18,7 +18,7 @@ public class FolderService {
 
     // Klasör Oluşturma
     public void createFolder(Folder folder) {
-        folderDao.saveOrUpdate(folder);
+        folderDao.save(folder);
     }
 
     // Alt Klasörleri Getirme
