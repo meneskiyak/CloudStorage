@@ -1,15 +1,15 @@
 package tr.edu.duzce.mf.bm.cloudstorage.controller;
 
 import jakarta.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import tr.edu.duzce.mf.bm.cloudstorage.entity.FileItem;
-import tr.edu.duzce.mf.bm.cloudstorage.entity.Folder;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 import tr.edu.duzce.mf.bm.cloudstorage.service.FileService;
-
-import java.util.UUID;
 
 @Controller
 @RequestMapping("/file")
@@ -19,43 +19,45 @@ public class FileController {
     private FileService fileService;
 
     @PostMapping("/upload")
-    public String uploadFile(@RequestParam("fileName") String fileName,
-                             @RequestParam("fileSize") Long fileSize,
-                             @RequestParam("mimeType") String mimeType,
+    public String uploadFile(@RequestParam("file") MultipartFile file,
                              @RequestParam(value = "folderId", required = false) Long folderId,
-                             HttpSession session) {
+                             HttpSession session,
+                             RedirectAttributes redirectAttributes) {
 
         User user = (User) session.getAttribute("loggedInUser");
         if (user == null) return "redirect:/login";
 
-        FileItem file = new FileItem();
-        file.setOriginalName(fileName);
-        file.setStoredName(UUID.randomUUID().toString()); // Diskteki eşsiz ismi
-        file.setStoragePath("/storage/path/mock");
-        file.setFileSizeBytes(fileSize);
-        file.setMimeType(mimeType);
-        file.setOwner(user);
-
-        if (folderId != null) {
-            Folder folder = new Folder();
-            folder.setId(folderId);
-            file.setFolder(folder);
+        if (file.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Lütfen bir dosya seçin.");
+            return folderId == null ? "redirect:/dashboard" : "redirect:/dashboard?folderId=" + folderId;
         }
 
         try {
-            fileService.uploadFile(file, user); // Kota kontrolü serviste yapılıyor
-            session.setAttribute("loggedInUser", user); // Kotayı güncelleyip session'a yansıt
+            fileService.uploadFile(file, folderId, user);
+            session.setAttribute("loggedInUser", user);
         } catch (Exception e) {
-            // İleride arkadaşın arayüze error basmak için burayı model.addAttribute ile süsleyebilir
-            System.out.println("HATA: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
         return folderId == null ? "redirect:/dashboard" : "redirect:/dashboard?folderId=" + folderId;
     }
 
     @PostMapping("/delete")
-    public String softDelete(@RequestParam("fileId") Long fileId) {
-        fileService.softDeleteFile(fileId);
-        return "redirect:/dashboard";
+    public String softDelete(@RequestParam("fileId") Long fileId,
+                             @RequestParam(value = "folderId", required = false) Long folderId,
+                             HttpSession session,
+                             RedirectAttributes redirectAttributes) {
+
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user == null) return "redirect:/login";
+
+        try {
+            fileService.softDeleteFile(fileId, user);
+            session.setAttribute("loggedInUser", user);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return folderId == null ? "redirect:/dashboard" : "redirect:/dashboard?folderId=" + folderId;
     }
 }

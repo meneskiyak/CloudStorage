@@ -2,22 +2,39 @@ package tr.edu.duzce.mf.bm.cloudstorage.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.AccessDeniedException;
+import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.FileNotFoundException;
+import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.StorageQuotaExceededException;
 import tr.edu.duzce.mf.bm.cloudstorage.dao.FileItemDao;
+import tr.edu.duzce.mf.bm.cloudstorage.dao.FolderDao;
+import tr.edu.duzce.mf.bm.cloudstorage.dao.UserDao;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.FileItem;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.Folder;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
-@Transactional
+@Transactional(propagation = Propagation.REQUIRED, readOnly = true, rollbackFor = Exception.class)
 public class FileService {
 
     @Autowired
     private FileItemDao fileItemDao;
 
-    // 1. Dosyaları Getirme ve Arama
+    @Autowired
+    private UserDao userDao;
+
+    @Autowired
+    private MinioService minioService;
+
+    @Autowired
+    private FolderDao folderDao;
+
     public List<FileItem> getUserFiles(Folder folder, User owner) {
         return fileItemDao.findFilesByFolderAndOwner(folder, owner);
     }
@@ -26,55 +43,88 @@ public class FileService {
         return fileItemDao.searchFiles(owner, keyword, mimeType);
     }
 
-    // 2. Upload ve Kota Kontrolü (Yol Haritası Zorunlu İsteri)
-    public void uploadFile(FileItem fileItem, User user) throws Exception {
-        if (user.isLimitExceeded(fileItem.getFileSizeBytes())) {
-            throw new Exception("Kota aşıldı! Mevcut alanınız bu dosya için yetersiz.");
+    @Transactional(readOnly = false)
+    public void uploadFile(MultipartFile multipartFile, Long folderId, User currentUser) {
+        if (currentUser.isLimitExceeded(multipartFile.getSize()))
+            throw new StorageQuotaExceededException("Kota aşıldı!");
+
+        String storedName;
+        try {
+            storedName = minioService.uploadFile(multipartFile);
+        } catch (Exception e) {
+            throw new RuntimeException("Dosya MinIO'ya yüklenemedi: " + e.getMessage(), e);
         }
-        // Hibernate session açık olduğu için user'ın byte'ını artırdığımızda DB'ye otomatik yansır.
-        user.setUsedBytes(user.getUsedBytes() + fileItem.getFileSizeBytes());
+
+        Folder folder = folderId != null ? folderDao.findById(folderId) : null;
+
+        FileItem fileItem = new FileItem();
+        fileItem.setOriginalName(multipartFile.getOriginalFilename());
+        fileItem.setStoredName(storedName);
+        fileItem.setStoragePath(minioService.bucket);
+        fileItem.setFileSizeBytes(multipartFile.getSize());
+        fileItem.setMimeType(multipartFile.getContentType() != null
+                ? multipartFile.getContentType() : "application/octet-stream");
+        fileItem.setFolder(folder);
+        fileItem.setOwner(currentUser);
+
+        currentUser.setUsedBytes(currentUser.getUsedBytes() + multipartFile.getSize());
+        userDao.update(currentUser);
         fileItemDao.save(fileItem);
     }
 
-    // 3. Dosya Taşıma (Yol Haritası Zorunlu İsteri)
-    public void moveFile(Long fileId, Folder targetFolder) {
+    @Transactional(readOnly = false)
+    public void moveFile(Long fileId, Folder targetFolder, User currentUser) {
         FileItem file = fileItemDao.findById(fileId);
-        if(file != null) {
-            file.setFolder(targetFolder);
-            // JPA/Hibernate'de merge veya persist çağırmaya bile gerek yok,
-            // @Transactional metot bittiğinde değişiklikleri DB'ye kendi yazar.
-        }
+        if (file == null)
+            throw new FileNotFoundException("Dosya bulunamadı");
+        if (!file.getOwner().getId().equals(currentUser.getId()))
+            throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
+
+        file.setFolder(targetFolder);
     }
 
-    // 4. Dosya Kopyalama (Yol Haritası Zorunlu İsteri)
-    public void copyFile(Long fileId, Folder targetFolder, User user) throws Exception {
+    @Transactional(readOnly = false)
+    public void copyFile(Long fileId, Folder targetFolder, User currentUser) {
         FileItem original = fileItemDao.findById(fileId);
-        if (original == null) return;
+        if (original == null)
+            throw new FileNotFoundException("Dosya bulunamadı");
+        if (!original.getOwner().getId().equals(currentUser.getId()))
+            throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
+        if (currentUser.isLimitExceeded(original.getFileSizeBytes()))
+            throw new StorageQuotaExceededException("Kopya için yeterli alan yok");
 
-        // Kopya dosya da yer kaplayacağı için KOTA KONTROLÜ tekrar yapılmalı!
-        if (user.isLimitExceeded(original.getFileSizeBytes())) {
-            throw new Exception("Kota aşıldı! Kopya işlemi için yeterli alan yok.");
+        String destName = UUID.randomUUID() + "_" + original.getOriginalName();
+        try {
+            minioService.copyFile(original.getStoredName(), destName);
+        } catch (Exception e) {
+            throw new RuntimeException("Dosya MinIO'da kopyalanamadı: " + e.getMessage(), e);
         }
 
         FileItem copy = new FileItem();
         copy.setOriginalName("Kopya_" + original.getOriginalName());
-        copy.setStoredName(java.util.UUID.randomUUID().toString()); // Yeni fiziksel isim
-        copy.setStoragePath(original.getStoragePath()); // Şimdilik aynı yolu gösteriyor
+        copy.setStoredName(destName);
+        copy.setStoragePath(original.getStoragePath());
         copy.setFileSizeBytes(original.getFileSizeBytes());
         copy.setMimeType(original.getMimeType());
         copy.setFolder(targetFolder);
-        copy.setOwner(user);
+        copy.setOwner(currentUser);
 
-        // Kullanıcının kotasını güncelle ve yeni dosyayı kaydet
-        user.setUsedBytes(user.getUsedBytes() + copy.getFileSizeBytes());
+        currentUser.setUsedBytes(currentUser.getUsedBytes() + copy.getFileSizeBytes());
+        userDao.update(currentUser);
         fileItemDao.save(copy);
     }
 
-    // 5. Soft Delete İşlemi
-    public void softDeleteFile(Long fileId) {
+    @Transactional(readOnly = false)
+    public void softDeleteFile(Long fileId, User currentUser) {
         FileItem file = fileItemDao.findById(fileId);
-        if(file != null) {
-            fileItemDao.softDelete(file);
-        }
+        if (file == null)
+            throw new FileNotFoundException("Dosya bulunamadı");
+        if (!file.getOwner().getId().equals(currentUser.getId()))
+            throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
+
+        // MinIO'da dosya kalır — çöp kutusundan kalıcı silme aşamasında kaldırılacak
+        currentUser.setUsedBytes(currentUser.getUsedBytes() - file.getFileSizeBytes());
+        userDao.update(currentUser);
+        fileItemDao.softDelete(file);
     }
 }
