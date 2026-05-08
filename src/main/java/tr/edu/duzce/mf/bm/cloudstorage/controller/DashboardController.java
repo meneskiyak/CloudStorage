@@ -11,8 +11,6 @@ import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 import tr.edu.duzce.mf.bm.cloudstorage.service.FileService;
 import tr.edu.duzce.mf.bm.cloudstorage.service.FolderService;
 
-import java.util.List;
-
 @Controller
 public class DashboardController {
 
@@ -23,27 +21,24 @@ public class DashboardController {
     private FileService fileService;
 
     @GetMapping("/dashboard")
-    public String showDashboard(@RequestParam(value = "folderId", required = false) Long folderId,
-                               HttpSession session, Model model) {
-        User user = (User) session.getAttribute("loggedInUser");
-        if (user == null) {
-            return "redirect:/login";
-        }
+    public String dashboard(@RequestParam(name = "folderId", required = false) Long folderId,
+                            HttpSession session,
+                            Model model) {
+
+        User currentUser = (User) session.getAttribute("loggedInUser");
 
         Folder currentFolder = null;
         if (folderId != null) {
-            currentFolder = folderService.getFolderById(folderId);
-            // Security check: ensure the folder belongs to the user
-            if (currentFolder != null && !currentFolder.getOwner().getId().equals(user.getId())) {
-                return "redirect:/dashboard";
-            }
+            currentFolder = folderService.getFolder(folderId);
         }
 
-        model.addAttribute("user", user);
+        model.addAttribute("folders",
+                folderService.getSubFolders(currentFolder, currentUser));
+        model.addAttribute("files",
+                fileService.getUserFiles(currentFolder, currentUser));
         model.addAttribute("currentFolder", currentFolder);
-        model.addAttribute("folders", folderService.getSubFolders(currentFolder, user));
-        model.addAttribute("files", fileService.getUserFiles(currentFolder, user));
-        
+        model.addAttribute("user", currentUser);
+
         return "dashboard";
     }
 }
