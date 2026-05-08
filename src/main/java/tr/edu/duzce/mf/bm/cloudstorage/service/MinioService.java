@@ -42,7 +42,11 @@ public class MinioService {
     }
 
     public String uploadFile(MultipartFile file) throws Exception {
-        String storedName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename != null && originalFilename.contains("/")) {
+            originalFilename = originalFilename.substring(originalFilename.lastIndexOf('/') + 1);
+        }
+        String storedName = UUID.randomUUID() + "_" + originalFilename;
         minioClient.putObject(
                 PutObjectArgs.builder()
                         .bucket(bucket)

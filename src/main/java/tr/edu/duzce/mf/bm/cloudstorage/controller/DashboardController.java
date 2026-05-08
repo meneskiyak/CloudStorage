@@ -1,6 +1,6 @@
 package tr.edu.duzce.mf.bm.cloudstorage.controller;
 
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,20 +22,18 @@ public class DashboardController {
 
     @GetMapping("/dashboard")
     public String dashboard(@RequestParam(name = "folderId", required = false) Long folderId,
-                            HttpSession session,
+                            HttpServletRequest request,
                             Model model) {
 
-        User currentUser = (User) session.getAttribute("loggedInUser");
+        User currentUser = (User) request.getAttribute("currentUser");
 
         Folder currentFolder = null;
         if (folderId != null) {
             currentFolder = folderService.getFolder(folderId);
         }
 
-        model.addAttribute("folders",
-                folderService.getSubFolders(currentFolder, currentUser));
-        model.addAttribute("files",
-                fileService.getUserFiles(currentFolder, currentUser));
+        model.addAttribute("folders", folderService.getSubFolders(currentFolder, currentUser));
+        model.addAttribute("files", fileService.getUserFiles(currentFolder, currentUser));
         model.addAttribute("currentFolder", currentFolder);
         model.addAttribute("user", currentUser);
 

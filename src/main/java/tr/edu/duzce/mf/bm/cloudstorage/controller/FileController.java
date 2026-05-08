@@ -1,13 +1,11 @@
 package tr.edu.duzce.mf.bm.cloudstorage.controller;
 
-import jakarta.servlet.http.HttpSession;
-
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 import tr.edu.duzce.mf.bm.cloudstorage.service.FileService;
 
@@ -21,11 +19,10 @@ public class FileController {
     @PostMapping("/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file,
                              @RequestParam(value = "folderId", required = false) Long folderId,
-                             HttpSession session,
+                             HttpServletRequest request,
                              RedirectAttributes redirectAttributes) {
 
-        User user = (User) session.getAttribute("loggedInUser");
-        if (user == null) return "redirect:/login";
+        User user = (User) request.getAttribute("currentUser");
 
         if (file.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Lütfen bir dosya seçin.");
@@ -34,7 +31,6 @@ public class FileController {
 
         try {
             fileService.uploadFile(file, folderId, user);
-            session.setAttribute("loggedInUser", user);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
@@ -45,15 +41,13 @@ public class FileController {
     @PostMapping("/delete")
     public String softDelete(@RequestParam("fileId") Long fileId,
                              @RequestParam(value = "folderId", required = false) Long folderId,
-                             HttpSession session,
+                             HttpServletRequest request,
                              RedirectAttributes redirectAttributes) {
 
-        User user = (User) session.getAttribute("loggedInUser");
-        if (user == null) return "redirect:/login";
+        User user = (User) request.getAttribute("currentUser");
 
         try {
             fileService.softDeleteFile(fileId, user);
-            session.setAttribute("loggedInUser", user);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }

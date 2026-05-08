@@ -302,13 +302,13 @@
         <input type="search" class="search-input" placeholder="<spring:message code="dashboard.search.placeholder"/>">
     </div>
 
-    <div class="topbar-user">
-        <div class="avatar">${fn:toUpperCase(fn:substring(user.username, 0, 1))}</div>
-        <span class="d-none d-lg-block text-secondary" style="font-size:.9rem">${user.username}</span>
-        <a href="${pageContext.request.contextPath}/logout" class="btn btn-sm btn-light ms-2">
-            <spring:message code="dashboard.logout"/>
-        </a>
-    </div>
+<%--    <div class="topbar-user">--%>
+<%--        <div class="avatar">${fn:toUpperCase(fn:substring(user.username, 0, 1))}</div>--%>
+<%--        <span class="d-none d-lg-block text-secondary" style="font-size:.9rem">${user.username}</span>--%>
+<%--        <a href="${pageContext.request.contextPath}/logout" class="btn btn-sm btn-light ms-2">--%>
+<%--            <spring:message code="dashboard.logout"/>--%>
+<%--        </a>--%>
+<%--    </div>--%>
 </header>
 
 <%-- ══ SIDEBAR ══ --%>
@@ -553,8 +553,10 @@
 <div class="modal fade" id="uploadFolderModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <form action="${pageContext.request.contextPath}/folder/upload" method="post" enctype="multipart/form-data">
+            <form id="uploadFolderForm" action="${pageContext.request.contextPath}/folder/upload"
+                  method="post" enctype="multipart/form-data">
                 <input type="hidden" name="parentId" value="${currentFolder.id}">
+                <div id="folderRelativePaths"></div>
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <i class="bi bi-folder2-open me-2" style="color:var(--accent)"></i>
@@ -568,6 +570,7 @@
                     </label>
                     <input type="file" class="form-control" id="folderInput" name="files"
                            webkitdirectory directory multiple required>
+                    <div id="folderFileCount" class="form-text mt-1"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">
@@ -591,6 +594,22 @@
             bootstrap.Modal.getOrCreateInstance(document.getElementById(showId)).show();
         });
     }
+
+    // Klasör seçildiğinde relativePaths hidden input'larını hazırla
+    document.getElementById('folderInput').addEventListener('change', function () {
+        var container = document.getElementById('folderRelativePaths');
+        container.innerHTML = '';
+        var count = this.files.length;
+        for (var i = 0; i < count; i++) {
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'relativePaths';
+            input.value = this.files[i].webkitRelativePath;
+            container.appendChild(input);
+        }
+        document.getElementById('folderFileCount').textContent =
+            count + ' dosya seçildi';
+    });
 </script>
 </body>
 </html>
