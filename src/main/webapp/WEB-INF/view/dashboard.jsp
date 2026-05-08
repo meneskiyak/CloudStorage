@@ -409,14 +409,16 @@
         <div class="folder-grid">
             <c:forEach var="file" items="${files}">
                 <div class="folder-card">
-                    <i class="bi ${file.mimeType.startsWith('image/') ? 'bi-file-image' :
-                                   file.mimeType == 'application/pdf' ? 'bi-file-pdf' :
-                                   file.mimeType.startsWith('video/') ? 'bi-file-play' :
-                                   file.mimeType.startsWith('audio/') ? 'bi-file-music' :
-                                   file.mimeType.contains('zip') || file.mimeType.contains('compressed') ? 'bi-file-zip' :
-                                   file.mimeType.contains('word') ? 'bi-file-word' :
-                                   file.mimeType.contains('sheet') || file.mimeType.contains('excel') ? 'bi-file-excel' :
-                                   'bi-file-earmark'} folder-icon"></i>
+                    <c:choose>
+                        <c:when test="${fn:startsWith(file.mimeType, 'image/')}"><i class="bi bi-file-image folder-icon"></i></c:when>
+                        <c:when test="${file.mimeType == 'application/pdf'}"><i class="bi bi-file-pdf folder-icon"></i></c:when>
+                        <c:when test="${fn:startsWith(file.mimeType, 'video/')}"><i class="bi bi-file-play folder-icon"></i></c:when>
+                        <c:when test="${fn:startsWith(file.mimeType, 'audio/')}"><i class="bi bi-file-music folder-icon"></i></c:when>
+                        <c:when test="${fn:contains(file.mimeType, 'zip') or fn:contains(file.mimeType, 'compressed')}"><i class="bi bi-file-zip folder-icon"></i></c:when>
+                        <c:when test="${fn:contains(file.mimeType, 'word')}"><i class="bi bi-file-word folder-icon"></i></c:when>
+                        <c:when test="${fn:contains(file.mimeType, 'sheet') or fn:contains(file.mimeType, 'excel')}"><i class="bi bi-file-excel folder-icon"></i></c:when>
+                        <c:otherwise><i class="bi bi-file-earmark folder-icon"></i></c:otherwise>
+                    </c:choose>
                     <span class="folder-name" title="${file.originalName}">${file.originalName}</span>
                     <button class="card-menu-btn"
                             data-bs-toggle="dropdown"
