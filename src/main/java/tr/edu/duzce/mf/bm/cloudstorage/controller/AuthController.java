@@ -24,6 +24,11 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @GetMapping("/")
+    public String root() {
+        return "redirect:/dashboard";
+    }
+
     @GetMapping("/register")
     public String showRegister() {
         return "register";

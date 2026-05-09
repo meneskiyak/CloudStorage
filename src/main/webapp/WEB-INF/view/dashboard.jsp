@@ -57,7 +57,10 @@
                                 <input type="hidden" name="folderId" value="${folder.id}">
                                 <input type="hidden" name="parentId" value="${currentFolder.id}">
                                 <button type="submit" class="dropdown-item small py-2">
-                                    <i class="bi bi-star me-2"></i>
+                                    <c:choose>
+                                        <c:when test="${folder.starred}"><i class="bi bi-star-fill text-warning me-2"></i></c:when>
+                                        <c:otherwise><i class="bi bi-star me-2"></i></c:otherwise>
+                                    </c:choose>
                                     <c:choose>
                                         <c:when test="${folder.starred}"><spring:message code="common.unstar"/></c:when>
                                         <c:otherwise><spring:message code="common.star"/></c:otherwise>
@@ -147,7 +150,10 @@
                                     <input type="hidden" name="fileId" value="${file.id}">
                                     <input type="hidden" name="folderId" value="${currentFolder.id}">
                                     <button type="submit" class="dropdown-item small py-2" onclick="event.stopPropagation()">
-                                        <i class="bi bi-star me-2"></i>
+                                        <c:choose>
+                                            <c:when test="${file.starred}"><i class="bi bi-star-fill text-warning me-2"></i></c:when>
+                                            <c:otherwise><i class="bi bi-star me-2"></i></c:otherwise>
+                                        </c:choose>
                                         <c:choose>
                                             <c:when test="${file.starred}"><spring:message code="common.unstar"/></c:when>
                                             <c:otherwise><spring:message code="common.star"/></c:otherwise>
@@ -187,10 +193,6 @@
         <div class="empty-state">
             <i class="bi bi-folder2-open"></i>
             <p><spring:message code="dashboard.empty"/></p>
-            <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#newMenuModal">
-                <i class="bi bi-plus-lg me-1"></i>
-                <spring:message code="dashboard.new"/>
-            </button>
         </div>
     </c:if>
 
@@ -235,8 +237,6 @@
     <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
         <div class="modal-content">
             <form id="deleteForm" method="post">
-                <input type="hidden" name="folderId" value="${currentFolder.id}">
-                <input type="hidden" name="parentId" value="${currentFolder.id}">
                 <input type="hidden" id="deleteItemId" name="">
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title w-100 text-center">

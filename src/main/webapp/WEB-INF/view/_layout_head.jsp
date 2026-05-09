@@ -247,18 +247,17 @@
     .folder-card .folder-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .folder-card .card-menu-btn {
-        opacity: 0;
+        opacity: 1;
         background: none;
         border: none;
         padding: 4px 6px;
         border-radius: 50%;
         color: #5f6368;
         font-size: 1rem;
-        transition: opacity 0.15s, background 0.15s;
+        transition: background 0.15s;
         flex-shrink: 0;
     }
 
-    .folder-card:hover .card-menu-btn { opacity: 1; }
     .folder-card .card-menu-btn:hover { background: #e8eaed; }
 
     /* ── Empty state ── */
