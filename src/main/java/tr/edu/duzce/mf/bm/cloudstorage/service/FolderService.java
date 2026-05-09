@@ -208,4 +208,8 @@ public class FolderService {
     public List<Folder> getStarredFolders(User owner) {
         return folderDao.findStarredByOwner(owner);
     }
+
+    public List<Folder> searchFolders(User owner, String keyword) {
+        return folderDao.searchByName(keyword, owner);
+    }
 }

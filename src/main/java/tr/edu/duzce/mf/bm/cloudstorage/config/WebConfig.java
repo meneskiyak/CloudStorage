@@ -9,6 +9,7 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -60,14 +61,14 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         StringHttpMessageConverter stringConverter = new StringHttpMessageConverter();
-        List<MediaType> mediaTypeList = new ArrayList<>();
-        mediaTypeList.add(new MediaType("text", "plain", StandardCharsets.UTF_8));
-        mediaTypeList.add(new MediaType("text", "html", StandardCharsets.UTF_8));
-        mediaTypeList.add(new MediaType("application", "json", StandardCharsets.UTF_8));
-        mediaTypeList.add(new MediaType("text", "javascript", StandardCharsets.UTF_8));
-
-        stringConverter.setSupportedMediaTypes(mediaTypeList);
+        List<MediaType> stringMediaTypes = new ArrayList<>();
+        stringMediaTypes.add(new MediaType("text", "plain", StandardCharsets.UTF_8));
+        stringMediaTypes.add(new MediaType("text", "html", StandardCharsets.UTF_8));
+        stringMediaTypes.add(new MediaType("text", "javascript", StandardCharsets.UTF_8));
+        stringConverter.setSupportedMediaTypes(stringMediaTypes);
         converters.add(stringConverter);
+
+        converters.add(new MappingJackson2HttpMessageConverter());
     }
 
     // --- HOCANIN SLAYTLARINA BİREBİR UYGUN i18n AYARLARI ---
