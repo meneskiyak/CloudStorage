@@ -36,7 +36,32 @@ public class DashboardController {
         model.addAttribute("files", fileService.getUserFiles(currentFolder, currentUser));
         model.addAttribute("currentFolder", currentFolder);
         model.addAttribute("user", currentUser);
+        model.addAttribute("activeNav", "home");
 
         return "dashboard";
+    }
+
+    @GetMapping("/trash")
+    public String trash(HttpServletRequest request, Model model) {
+        User currentUser = (User) request.getAttribute("currentUser");
+
+        model.addAttribute("folders", folderService.getDeletedFolders(currentUser));
+        model.addAttribute("files", fileService.getDeletedFiles(currentUser));
+        model.addAttribute("user", currentUser);
+        model.addAttribute("activeNav", "trash");
+
+        return "trash";
+    }
+
+    @GetMapping("/starred")
+    public String starred(HttpServletRequest request, Model model) {
+        User currentUser = (User) request.getAttribute("currentUser");
+
+        model.addAttribute("folders", folderService.getStarredFolders(currentUser));
+        model.addAttribute("files", fileService.getStarredFiles(currentUser));
+        model.addAttribute("user", currentUser);
+        model.addAttribute("activeNav", "starred");
+
+        return "starred";
     }
 }

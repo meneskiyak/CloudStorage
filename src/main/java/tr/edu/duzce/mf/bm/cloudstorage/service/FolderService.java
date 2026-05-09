@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.AccessDeniedException;
 import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.FolderAlreadyExistsException;
 import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.FolderNotFoundException;
 import tr.edu.duzce.mf.bm.cloudstorage.dao.FolderDao;
@@ -136,5 +137,75 @@ public class FolderService {
 
         // Eğer klasör boş değilse silme gibi ek kontroller buraya yazılabilir
         folderDao.delete(folder);
+    }
+
+    @Transactional(readOnly = false)
+    public void softDeleteFolder(Long folderId, User currentUser) {
+        Folder folder = folderDao.findById(folderId);
+        if (folder == null)
+            throw new FolderNotFoundException("Klasör bulunamadı");
+        if (!folder.getOwner().getId().equals(currentUser.getId()))
+            throw new AccessDeniedException("Bu klasöre erişim yetkiniz yok");
+
+        folderDao.softDelete(folder);
+    }
+
+    public List<Folder> getDeletedFolders(User owner) {
+        return folderDao.findDeletedByOwner(owner);
+    }
+
+    @Transactional(readOnly = false)
+    public void restoreFolder(Long folderId, User currentUser) {
+        Folder folder = folderDao.findById(folderId);
+        if (folder == null)
+            throw new FolderNotFoundException("Klasör bulunamadı");
+        if (!folder.getOwner().getId().equals(currentUser.getId()))
+            throw new AccessDeniedException("Bu klasöre erişim yetkiniz yok");
+
+        folder.setDeleted(false);
+    }
+
+    @Transactional(readOnly = false)
+    public void permanentlyDeleteFolder(Long folderId, User currentUser) {
+        Folder folder = folderDao.findById(folderId);
+        if (folder == null)
+            throw new FolderNotFoundException("Klasör bulunamadı");
+        if (!folder.getOwner().getId().equals(currentUser.getId()))
+            throw new tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.AccessDeniedException("Bu klasöre erişim yetkiniz yok");
+
+        folderDao.delete(folder);
+    }
+
+    @Transactional(readOnly = false)
+    public void renameFolder(Long folderId, String newName, User currentUser) {
+        Folder folder = folderDao.findById(folderId);
+        if (folder == null)
+            throw new FolderNotFoundException("Klasör bulunamadı");
+        if (!folder.getOwner().getId().equals(currentUser.getId()))
+            throw new AccessDeniedException("Bu klasöre erişim yetkiniz yok");
+
+        List<Folder> folderList = folderDao.findByParentAndOwner(folder.getParent(), currentUser);
+        boolean exist = folderList.stream()
+                .anyMatch(f -> !f.getId().equals(folderId) && f.getName().equalsIgnoreCase(newName));
+
+        if (exist)
+            throw new FolderAlreadyExistsException("Bu isimde bir klasör zaten var");
+
+        folder.setName(newName);
+    }
+
+    @Transactional(readOnly = false)
+    public void toggleStar(Long folderId, User currentUser) {
+        Folder folder = folderDao.findById(folderId);
+        if (folder == null)
+            throw new FolderNotFoundException("Klasör bulunamadı");
+        if (!folder.getOwner().getId().equals(currentUser.getId()))
+            throw new AccessDeniedException("Bu klasöre erişim yetkiniz yok");
+
+        folder.setStarred(!folder.isStarred());
+    }
+
+    public List<Folder> getStarredFolders(User owner) {
+        return folderDao.findStarredByOwner(owner);
     }
 }

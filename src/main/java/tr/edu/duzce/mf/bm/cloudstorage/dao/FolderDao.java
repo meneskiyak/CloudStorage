@@ -80,4 +80,31 @@ public class FolderDao extends BaseDao<Folder> {
         );
         return getSession().createQuery(criteria).getResultList();
     }
+
+    public List<Folder> findDeletedByOwner(User owner) {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery<Folder> criteria = createCriteriaQuery();
+        Root<Folder> root = getRoot(criteria);
+        criteria.select(root).where(
+                builder.and(
+                        builder.equal(root.get("owner"), owner),
+                        builder.isTrue(root.get("deleted"))
+                )
+        );
+        return getSession().createQuery(criteria).getResultList();
+    }
+
+    public List<Folder> findStarredByOwner(User owner) {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery<Folder> criteria = createCriteriaQuery();
+        Root<Folder> root = getRoot(criteria);
+        criteria.select(root).where(
+                builder.and(
+                        builder.equal(root.get("owner"), owner),
+                        builder.isFalse(root.get("deleted")),
+                        builder.isTrue(root.get("starred"))
+                )
+        );
+        return getSession().createQuery(criteria).getResultList();
+    }
 }

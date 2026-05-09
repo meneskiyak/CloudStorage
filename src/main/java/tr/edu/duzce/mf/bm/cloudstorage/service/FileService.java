@@ -127,4 +127,63 @@ public class FileService {
         userDao.update(currentUser);
         fileItemDao.softDelete(file);
     }
+
+    @Transactional(readOnly = false)
+    public void renameFile(Long fileId, String newName, User currentUser) {
+        FileItem file = fileItemDao.findById(fileId);
+        if (file == null)
+            throw new FileNotFoundException("Dosya bulunamadı");
+        if (!file.getOwner().getId().equals(currentUser.getId()))
+            throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
+
+        file.setOriginalName(newName);
+    }
+
+    public List<FileItem> getDeletedFiles(User owner) {
+        return fileItemDao.findDeletedByOwner(owner);
+    }
+
+    @Transactional(readOnly = false)
+    public void restoreFile(Long fileId, User currentUser) {
+        FileItem file = fileItemDao.findById(fileId);
+        if (file == null)
+            throw new FileNotFoundException("Dosya bulunamadı");
+        if (!file.getOwner().getId().equals(currentUser.getId()))
+            throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
+
+        file.setDeleted(false);
+        currentUser.setUsedBytes(currentUser.getUsedBytes() + file.getFileSizeBytes());
+        userDao.update(currentUser);
+    }
+
+    @Transactional(readOnly = false)
+    public void permanentlyDeleteFile(Long fileId, User currentUser) {
+        FileItem file = fileItemDao.findById(fileId);
+        if (file == null)
+            throw new FileNotFoundException("Dosya bulunamadı");
+        if (!file.getOwner().getId().equals(currentUser.getId()))
+            throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
+
+        try {
+            minioService.deleteFile(file.getStoredName());
+        } catch (Exception e) {
+            // Loglanabilir veya kullanıcıya bildirilebilir
+        }
+        fileItemDao.delete(file);
+    }
+
+    @Transactional(readOnly = false)
+    public void toggleStar(Long fileId, User currentUser) {
+        FileItem file = fileItemDao.findById(fileId);
+        if (file == null)
+            throw new FileNotFoundException("Dosya bulunamadı");
+        if (!file.getOwner().getId().equals(currentUser.getId()))
+            throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
+
+        file.setStarred(!file.isStarred());
+    }
+
+    public List<FileItem> getStarredFiles(User owner) {
+        return fileItemDao.findStarredByOwner(owner);
+    }
 }

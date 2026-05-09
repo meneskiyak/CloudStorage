@@ -71,4 +71,82 @@ public class FolderController {
 
         return parentId != null ? "redirect:/dashboard?folderId=" + parentId : "redirect:/dashboard";
     }
+
+    @PostMapping("/rename")
+    public String renameFolder(@RequestParam("folderId") Long folderId,
+                               @RequestParam("newName") String newName,
+                               @RequestParam(value = "parentId", required = false) Long parentId,
+                               HttpServletRequest request,
+                               RedirectAttributes redirectAttributes) {
+
+        User user = (User) request.getAttribute("currentUser");
+
+        try {
+            folderService.renameFolder(folderId, newName, user);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return parentId != null ? "redirect:/dashboard?folderId=" + parentId : "redirect:/dashboard";
+    }
+
+    @PostMapping("/delete")
+    public String softDelete(@RequestParam("folderId") Long folderId,
+                             @RequestParam(value = "parentId", required = false) Long parentId,
+                             HttpServletRequest request,
+                             RedirectAttributes redirectAttributes) {
+
+        User user = (User) request.getAttribute("currentUser");
+
+        try {
+            folderService.softDeleteFolder(folderId, user);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return parentId != null ? "redirect:/dashboard?folderId=" + parentId : "redirect:/dashboard";
+    }
+
+    @PostMapping("/restore")
+    public String restore(@RequestParam("folderId") Long folderId,
+                          HttpServletRequest request,
+                          RedirectAttributes redirectAttributes) {
+        User user = (User) request.getAttribute("currentUser");
+        try {
+            folderService.restoreFolder(folderId, user);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/trash";
+    }
+
+    @PostMapping("/delete-permanent")
+    public String deletePermanent(@RequestParam("folderId") Long folderId,
+                                  HttpServletRequest request,
+                                  RedirectAttributes redirectAttributes) {
+        User user = (User) request.getAttribute("currentUser");
+        try {
+            folderService.permanentlyDeleteFolder(folderId, user);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/trash";
+    }
+
+    @PostMapping("/star")
+    public String toggleStar(@RequestParam("folderId") Long folderId,
+                             @RequestParam(value = "parentId", required = false) Long parentId,
+                             @RequestParam(value = "redirect", defaultValue = "dashboard") String redirect,
+                             HttpServletRequest request,
+                             RedirectAttributes redirectAttributes) {
+        User user = (User) request.getAttribute("currentUser");
+        try {
+            folderService.toggleStar(folderId, user);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        if ("starred".equals(redirect)) return "redirect:/starred";
+        return parentId != null ? "redirect:/dashboard?folderId=" + parentId : "redirect:/dashboard";
+    }
 }

@@ -54,4 +54,65 @@ public class FileController {
 
         return folderId == null ? "redirect:/dashboard" : "redirect:/dashboard?folderId=" + folderId;
     }
+
+    @PostMapping("/rename")
+    public String renameFile(@RequestParam("fileId") Long fileId,
+                             @RequestParam("newName") String newName,
+                             @RequestParam(value = "folderId", required = false) Long folderId,
+                             HttpServletRequest request,
+                             RedirectAttributes redirectAttributes) {
+
+        User user = (User) request.getAttribute("currentUser");
+
+        try {
+            fileService.renameFile(fileId, newName, user);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return folderId == null ? "redirect:/dashboard" : "redirect:/dashboard?folderId=" + folderId;
+    }
+
+    @PostMapping("/restore")
+    public String restore(@RequestParam("fileId") Long fileId,
+                          HttpServletRequest request,
+                          RedirectAttributes redirectAttributes) {
+        User user = (User) request.getAttribute("currentUser");
+        try {
+            fileService.restoreFile(fileId, user);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/trash";
+    }
+
+    @PostMapping("/delete-permanent")
+    public String deletePermanent(@RequestParam("fileId") Long fileId,
+                                  HttpServletRequest request,
+                                  RedirectAttributes redirectAttributes) {
+        User user = (User) request.getAttribute("currentUser");
+        try {
+            fileService.permanentlyDeleteFile(fileId, user);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/trash";
+    }
+
+    @PostMapping("/star")
+    public String toggleStar(@RequestParam("fileId") Long fileId,
+                             @RequestParam(value = "folderId", required = false) Long folderId,
+                             @RequestParam(value = "redirect", defaultValue = "dashboard") String redirect,
+                             HttpServletRequest request,
+                             RedirectAttributes redirectAttributes) {
+        User user = (User) request.getAttribute("currentUser");
+        try {
+            fileService.toggleStar(fileId, user);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        if ("starred".equals(redirect)) return "redirect:/starred";
+        return folderId == null ? "redirect:/dashboard" : "redirect:/dashboard?folderId=" + folderId;
+    }
 }
