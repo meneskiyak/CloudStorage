@@ -46,14 +46,15 @@
     <c:if test="${user != null}">
         <div class="storage-box">
             <div class="storage-label"><spring:message code="dashboard.storage.title"/></div>
-            <c:set var="pct" value="${(user.usedBytes / user.uploadLimitBytes) * 100}"/>
-            <div class="progress mb-2">
+            <c:set var="limit" value="${user.uploadLimitBytes > 0 ? user.uploadLimitBytes : 1}"/>
+            <c:set var="pct" value="${(user.usedBytes / limit) * 100}"/>
+            <div class="progress mb-2" style="height: 4px; background-color: #e8eaed;">
                 <div class="progress-bar" style="width:${pct}%"></div>
             </div>
             <div class="storage-label">
-                <fmt:formatNumber var="usedMb" value="${user.usedBytes / 1048576}" maxFractionDigits="1"/>
-                <fmt:formatNumber var="totalMb" value="${user.uploadLimitBytes / 1048576}" maxFractionDigits="0"/>
-                <spring:message code="dashboard.storage.using" arguments="${usedMb},${totalMb}"/>
+                <fmt:formatNumber var="usedGb" value="${user.usedBytes / 1073741824.0}" maxFractionDigits="2"/>
+                <fmt:formatNumber var="totalGb" value="${user.uploadLimitBytes / 1073741824.0}" maxFractionDigits="1"/>
+                ${usedGb} GB / ${totalGb} GB
             </div>
         </div>
     </c:if>
