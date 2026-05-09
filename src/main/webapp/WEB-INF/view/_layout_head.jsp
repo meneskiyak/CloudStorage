@@ -68,6 +68,53 @@
         box-shadow: 0 2px 8px rgba(0,0,0,.15);
     }
 
+    .topbar-user {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        padding-right: 8px;
+    }
+
+    .avatar-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #1a73e8;
+        color: #fff;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: border-color 0.2s;
+        padding: 0;
+    }
+
+    .avatar-btn:hover { border-color: #d2e3fc; }
+
+    .user-dropdown .dropdown-menu {
+        margin-top: 8px;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,.1);
+        border-radius: 8px;
+        padding: 8px 0;
+    }
+
+    .user-dropdown .dropdown-item {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        color: #3c4043;
+    }
+
+    .user-dropdown .dropdown-item i {
+        font-size: 1.1rem;
+        color: #5f6368;
+        width: 20px;
+        margin-right: 10px;
+    }
+
     /* ── Sidebar ── */
     .sidebar {
         position: fixed;
@@ -269,4 +316,62 @@
     /* ── Modal animasyon hızı ── */
     .modal.fade .modal-dialog { transition: transform 0.15s ease-out; }
     .modal.fade { transition: opacity 0.15s linear; }
+
+    /* ── Dosya thumbnail kartı ── */
+    .folder-card.has-thumb {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0;
+    }
+    .folder-card.has-thumb .card-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+    }
+    .file-thumb-wrap {
+        width: 100%;
+        height: 120px;
+        overflow: hidden;
+        border-radius: 8px 8px 0 0;
+        background: #f1f3f4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .file-thumb-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .file-thumb-wrap .thumb-icon {
+        font-size: 2.5rem;
+        color: #bdc1c6;
+    }
+
+    /* ── Preview modal ── */
+    #previewModal .modal-dialog { max-width: 860px; }
+    #previewModal .modal-body {
+        padding: 0;
+        background: #202124;
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #previewModal .preview-img {
+        max-width: 100%;
+        max-height: 75vh;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+    #previewModal .preview-pdf-frame {
+        width: 100%;
+        height: 75vh;
+        border: none;
+        display: block;
+    }
 </style>

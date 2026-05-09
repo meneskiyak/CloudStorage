@@ -186,4 +186,13 @@ public class FileService {
     public List<FileItem> getStarredFiles(User owner) {
         return fileItemDao.findStarredByOwner(owner);
     }
+
+    public FileItem getFileById(Long fileId, User currentUser) {
+        FileItem file = fileItemDao.findById(fileId);
+        if (file == null)
+            throw new FileNotFoundException("Dosya bulunamadı");
+        if (!file.getOwner().getId().equals(currentUser.getId()))
+            throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
+        return file;
+    }
 }

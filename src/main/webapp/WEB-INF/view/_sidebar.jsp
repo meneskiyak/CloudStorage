@@ -26,6 +26,32 @@
             overflow-y:auto;
         "></div>
     </div>
+
+    <div class="topbar-user">
+        <div class="dropdown user-dropdown">
+            <button class="avatar-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <c:set var="names" value="${fn:split(user.fullName, ' ')}"/>
+                <c:out value="${fn:substring(names[0], 0, 1)}${fn:length(names) > 1 ? fn:substring(names[fn:length(names)-1], 0, 1) : ''}"/>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                <li class="px-3 py-2 border-bottom mb-1">
+                    <div class="fw-bold small text-truncate" style="max-width: 150px;">${user.fullName}</div>
+                    <div class="text-secondary text-truncate" style="font-size: 0.75rem; max-width: 150px;">${user.email}</div>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="#">
+                        <i class="bi bi-gear"></i><spring:message code="common.settings"/>
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/logout">
+                        <i class="bi bi-box-arrow-right"></i><spring:message code="dashboard.logout"/>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
 </header>
 
 <%-- ══ SIDEBAR ══ --%>
@@ -223,14 +249,14 @@
             var q = this.value.trim();
             if (q.length === 0) { closeDropdown(); return; }
 
-            debounceTimer = setTimeout(function () {
+             debounceTimer = setTimeout(function () {
                 fetch(ctx + '/search?q=' + encodeURIComponent(q), {
                     headers: { 'Accept': 'application/json' }
                 })
                 .then(function(r){ return r.json(); })
                 .then(function(data){ renderDropdown(data, q); })
                 .catch(function(){ closeDropdown(); });
-            }, 500);
+            }, 300);
         });
 
         input.addEventListener('keydown', function(e) {
