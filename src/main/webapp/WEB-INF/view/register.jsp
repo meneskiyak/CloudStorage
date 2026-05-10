@@ -16,8 +16,13 @@
         <div class="col-md-5">
             <h3 class="text-center mb-4">Yeni Hesap Oluştur</h3>
 
-            <c:if test="${not empty error}">
-                <div class="alert alert-danger">${error}</div>
+            <c:if test="${not empty error or not empty param.error}">
+                <div class="alert alert-danger">
+                    <c:choose>
+                        <c:when test="${param.error == 'exists'}">Bu e-posta adresi zaten kullanımda!</c:when>
+                        <c:otherwise>${error}</c:otherwise>
+                    </c:choose>
+                </div>
             </c:if>
 
             <div class="card shadow-sm">

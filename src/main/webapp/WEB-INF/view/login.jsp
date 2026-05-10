@@ -17,8 +17,13 @@
             <c:if test="${not empty param.logout}">
                 <div class="alert alert-info">Başarıyla çıkış yaptınız.</div>
             </c:if>
-            <c:if test="${not empty error}">
-                <div class="alert alert-danger">${error}</div>
+            <c:if test="${not empty error or not empty param.error}">
+                <div class="alert alert-danger">
+                    <c:choose>
+                        <c:when test="${param.error == 'invalid'}">Hatalı email veya şifre!</c:when>
+                        <c:otherwise>${error}</c:otherwise>
+                    </c:choose>
+                </div>
             </c:if>
 
             <div class="card shadow-sm">

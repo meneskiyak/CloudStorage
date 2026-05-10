@@ -11,6 +11,7 @@ import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 
 import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.InvalidPasswordException;
 import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.UserAlreadyExistsException;
+import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.UserNotFoundException;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -64,6 +65,9 @@ public class UserService {
      * Kullanıcıyı günceller (Rol veya kota değişikliği için).
      */
     public void updateUser(User user) {
+        if (userDao.findById(user.getId()) == null) {
+            throw new UserNotFoundException("Güncellenmek istenen kullanıcı bulunamadı!");
+        }
         userDao.update(user);
         logger.info("Kullanıcı bilgileri güncellendi: {}", user.getEmail());
     }
@@ -72,7 +76,11 @@ public class UserService {
      * ID üzerinden kullanıcı bulur.
      */
     public User findById(Long id) {
-        return userDao.findById(id);
+        User user = userDao.findById(id);
+        if (user == null) {
+            throw new UserNotFoundException("Kullanıcı bulunamadı!");
+        }
+        return user;
     }
 
     /**
@@ -157,12 +165,17 @@ public class UserService {
     public User login(String email, String password) {
         User user = userDao.findByEmail(email);
 
-        if (user != null && BCrypt.checkpw(password, user.getPasswordHash())) {
-            logger.info("Kullanıcı girişi başarılı (BCrypt doğrulandı): {}", email);
-            return user;
+        if (user == null) {
+            logger.warn("Giriş denemesi başarısız: Kullanıcı bulunamadı: {}", email);
+            throw new UserNotFoundException("Bu e-posta adresine kayıtlı bir kullanıcı bulunamadı!");
+        }
+
+        if (!BCrypt.checkpw(password, user.getPasswordHash())) {
+            logger.warn("Giriş denemesi başarısız: Hatalı şifre: {}", email);
+            throw new InvalidPasswordException("Girdiğiniz şifre hatalı!");
         }
         
-        logger.warn("Hatalı giriş denemesi veya geçersiz şifre: {}", email);
-        return null;
+        logger.info("Kullanıcı girişi başarılı (BCrypt doğrulandı): {}", email);
+        return user;
     }
 }

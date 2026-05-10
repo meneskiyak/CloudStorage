@@ -48,14 +48,26 @@ public class FileService {
         if (currentUser.isLimitExceeded(multipartFile.getSize()))
             throw new StorageQuotaExceededException("Kota aşıldı!");
 
+        Folder folder = null;
+        if (folderId != null) {
+            folder = folderDao.findById(folderId);
+            if (folder == null)
+                throw new tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.FolderNotFoundException("Hedef klasör bulunamadı!");
+            
+            // Güvenlik ve İş Mantığı Kontrolleri
+            if (!folder.getOwner().getId().equals(currentUser.getId()))
+                throw new AccessDeniedException("Bu klasöre dosya yükleme yetkiniz yok!");
+            
+            if (folder.isDeleted())
+                throw new tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.FolderNotFoundException("Silinmiş bir klasöre dosya yüklenemez!");
+        }
+
         String storedName;
         try {
             storedName = minioService.uploadFile(multipartFile);
         } catch (Exception e) {
-            throw new RuntimeException("Dosya MinIO'ya yüklenemedi: " + e.getMessage(), e);
+            throw new tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.StorageException("Dosya MinIO'ya yüklenemedi!", e);
         }
-
-        Folder folder = folderId != null ? folderDao.findById(folderId) : null;
 
         FileItem fileItem = new FileItem();
         fileItem.setOriginalName(multipartFile.getOriginalFilename());
@@ -77,8 +89,18 @@ public class FileService {
         FileItem file = fileItemDao.findById(fileId);
         if (file == null)
             throw new FileNotFoundException("Dosya bulunamadı");
+        
         if (!file.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
+
+        // Hedef klasör kontrolleri
+        if (targetFolder != null) {
+            if (!targetFolder.getOwner().getId().equals(currentUser.getId()))
+                throw new AccessDeniedException("Hedef klasöre erişim yetkiniz yok!");
+            
+            if (targetFolder.isDeleted())
+                throw new tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.FolderNotFoundException("Silinmiş bir klasöre dosya taşınamaz!");
+        }
 
         file.setFolder(targetFolder);
     }
@@ -88,8 +110,19 @@ public class FileService {
         FileItem original = fileItemDao.findById(fileId);
         if (original == null)
             throw new FileNotFoundException("Dosya bulunamadı");
+        
         if (!original.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
+
+        // Hedef klasör kontrolleri
+        if (targetFolder != null) {
+            if (!targetFolder.getOwner().getId().equals(currentUser.getId()))
+                throw new AccessDeniedException("Hedef klasöre erişim yetkiniz yok!");
+            
+            if (targetFolder.isDeleted())
+                throw new tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.FolderNotFoundException("Silinmiş bir klasöre dosya kopyalanamaz!");
+        }
+
         if (currentUser.isLimitExceeded(original.getFileSizeBytes()))
             throw new StorageQuotaExceededException("Kopya için yeterli alan yok");
 
@@ -97,7 +130,7 @@ public class FileService {
         try {
             minioService.copyFile(original.getStoredName(), destName);
         } catch (Exception e) {
-            throw new RuntimeException("Dosya MinIO'da kopyalanamadı: " + e.getMessage(), e);
+            throw new tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.StorageException("Dosya MinIO'da kopyalanamadı!", e);
         }
 
         FileItem copy = new FileItem();
@@ -150,6 +183,10 @@ public class FileService {
             throw new FileNotFoundException("Dosya bulunamadı");
         if (!file.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
+
+        if (currentUser.isLimitExceeded(file.getFileSizeBytes())) {
+            throw new StorageQuotaExceededException("Dosyayı geri yüklemek için yeterli alanınız yok!");
+        }
 
         file.setDeleted(false);
         currentUser.setUsedBytes(currentUser.getUsedBytes() + file.getFileSizeBytes());

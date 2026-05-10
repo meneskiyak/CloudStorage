@@ -20,6 +20,19 @@
         <h4 class="mb-0"><spring:message code="trash.title"/></h4>
     </div>
 
+    <%-- Alerts --%>
+    <c:if test="${not empty error or param.error != null or not empty success}">
+        <div class="alert ${not empty success ? 'alert-success' : 'alert-danger'} alert-dismissible fade show mb-4 shadow-sm border-0" role="alert" style="border-radius: 12px; background-color: ${not empty success ? '#e6f4ea' : '#fce8e6'}; color: ${not empty success ? '#137333' : '#c5221f'};">
+            <i class="bi ${not empty success ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2"></i>
+            <c:choose>
+                <c:when test="${param.error == 'quota'}"><spring:message code="error.quota"/></c:when>
+                <c:when test="${not empty error}">${error}</c:when>
+                <c:when test="${not empty success}">${success}</c:when>
+            </c:choose>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </c:if>
+
     <%-- Folders section --%>
     <c:if test="${not empty folders}">
         <div class="section-title"><spring:message code="dashboard.section.folders"/></div>

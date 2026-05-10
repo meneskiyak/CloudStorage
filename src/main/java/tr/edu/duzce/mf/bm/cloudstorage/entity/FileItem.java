@@ -52,11 +52,9 @@ public class FileItem implements Serializable {
     private boolean starred = false;
 
     @Column(name = "created_at", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
 
     @Column(name = "updated_at")
-    @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
 
     // DİKKAT: @OneToMany(mappedBy = "file") kısmı KESİNLİKLE kaldırıldı

@@ -44,7 +44,6 @@ public class Share implements Serializable {
     private Permission permission = Permission.READ;
 
     @Column(name = "created_at", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
 
     @PrePersist

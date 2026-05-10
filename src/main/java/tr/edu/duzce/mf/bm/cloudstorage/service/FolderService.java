@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.AccessDeniedException;
 import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.FolderAlreadyExistsException;
 import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.FolderNotFoundException;
+import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.StorageQuotaExceededException;
 import tr.edu.duzce.mf.bm.cloudstorage.dao.FolderDao;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.Folder;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.FileItem;
@@ -37,6 +38,15 @@ public class FolderService {
 
     // Klasör Oluşturma
     public void createFolder(Folder folder) {
+        // Üst klasör kontrolleri
+        if (folder.getParent() != null) {
+            Folder parent = folder.getParent();
+            if (!parent.getOwner().getId().equals(folder.getOwner().getId()))
+                throw new AccessDeniedException("Üst klasöre erişim yetkiniz yok!");
+            
+            if (parent.isDeleted())
+                throw new FolderNotFoundException("Silinmiş bir klasör içinde yeni klasör oluşturulamaz!");
+        }
 
         List<Folder> folderList = folderDao.findByParentAndOwner(
                 folder.getParent(),
@@ -65,16 +75,71 @@ public class FolderService {
     }
 
     // Klasör Taşıma (Parent'ı Değiştirme)
-    public void moveFolder(Long folderId, Folder newParent) {
+    public void moveFolder(Long folderId, Folder newParent, User currentUser) {
         Folder folder = folderDao.findById(folderId);
-        if(folder != null) {
-            folder.setParent(newParent);
+        if (folder == null)
+            throw new FolderNotFoundException("Taşınacak klasör bulunamadı!");
+        
+        if (!folder.getOwner().getId().equals(currentUser.getId()))
+            throw new AccessDeniedException("Bu klasörü taşıma yetkiniz yok!");
+
+        if (newParent != null) {
+            // Hedef klasör sahiplik ve silinmişlik kontrolü
+            if (!newParent.getOwner().getId().equals(currentUser.getId()))
+                throw new AccessDeniedException("Hedef klasöre erişim yetkiniz yok!");
+            
+            if (newParent.isDeleted())
+                throw new FolderNotFoundException("Silinmiş bir klasöre taşıma yapılamaz!");
+
+            // Sonsuz döngü (Circular Reference) kontrolü
+            if (isDescendant(folder, newParent)) {
+                throw new IllegalArgumentException("Bir klasör, kendi alt klasörlerinden birine taşınamaz!");
+            }
+            
+            // Kendine taşıma kontrolü
+            if (folder.getId().equals(newParent.getId())) {
+                throw new IllegalArgumentException("Bir klasör kendi içine taşınamaz!");
+            }
         }
+
+        folder.setParent(newParent);
+    }
+
+    /**
+     * Bir klasörün, başka bir klasörün alt öğesi (torunu) olup olmadığını kontrol eder.
+     */
+    private boolean isDescendant(Folder folder, Folder potentialDescendant) {
+        Folder current = potentialDescendant;
+        while (current != null) {
+            if (current.getId().equals(folder.getId())) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
     }
 
     // Klasör yükleme — webkitRelativePath'leri parse ederek hiyerarşiyi oluşturur
     public void uploadFolder(List<MultipartFile> files, List<String> relativePaths,
                              Folder parentFolder, User owner) {
+
+        // Üst klasör kontrolleri
+        if (parentFolder != null) {
+            if (!parentFolder.getOwner().getId().equals(owner.getId()))
+                throw new AccessDeniedException("Hedef klasöre erişim yetkiniz yok!");
+            
+            if (parentFolder.isDeleted())
+                throw new FolderNotFoundException("Silinmiş bir klasöre yükleme yapılamaz!");
+        }
+
+        // Kota kontrolü — toplam boyutu hesapla
+        long totalSize = files.stream().filter(f -> !f.isEmpty()).mapToLong(MultipartFile::getSize).sum();
+        if (owner.isLimitExceeded(totalSize)) {
+            throw new StorageQuotaExceededException(
+                    "Kotanız bu klasörü yüklemek için yetersiz! (Gereken: " + totalSize + " byte)"
+            );
+        }
+
         // path -> Folder cache: aynı klasörü iki kez oluşturmamak için
         Map<String, Folder> folderCache = new HashMap<>();
 
@@ -122,7 +187,7 @@ public class FolderService {
 
                     owner.setUsedBytes(owner.getUsedBytes() + file.getSize());
                 } catch (Exception e) {
-                    throw new RuntimeException("Dosya yüklenemedi: " + file.getOriginalFilename(), e);
+                    throw new tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.StorageException("Dosya yüklenemedi: " + file.getOriginalFilename(), e);
                 }
             }
         }
@@ -147,7 +212,38 @@ public class FolderService {
         if (!folder.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu klasöre erişim yetkiniz yok");
 
-        folderDao.softDelete(folder);
+        // Klasör içindeki tüm dosyaları bul ve boyutlarını kotadan düş
+        long totalSize = calculateFolderSize(folder);
+        currentUser.setUsedBytes(Math.max(0, currentUser.getUsedBytes() - totalSize));
+        userDao.update(currentUser);
+
+        // Klasörü ve tüm alt öğelerini işaretle
+        recursiveSoftDelete(folder);
+    }
+
+    private long calculateFolderSize(Folder folder) {
+        long size = 0;
+        for (FileItem file : folder.getFiles()) {
+            if (!file.isDeleted()) {
+                size += file.getFileSizeBytes();
+            }
+        }
+        for (Folder sub : folder.getChildren()) {
+            if (!sub.isDeleted()) {
+                size += calculateFolderSize(sub);
+            }
+        }
+        return size;
+    }
+
+    private void recursiveSoftDelete(Folder folder) {
+        folder.setDeleted(true);
+        for (FileItem file : folder.getFiles()) {
+            file.setDeleted(true);
+        }
+        for (Folder sub : folder.getChildren()) {
+            recursiveSoftDelete(sub);
+        }
     }
 
     public List<Folder> getDeletedFolders(User owner) {
@@ -162,7 +258,43 @@ public class FolderService {
         if (!folder.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu klasöre erişim yetkiniz yok");
 
+        // Geri yükleme için kota kontrolü
+        long totalSize = calculateDeletedFolderSize(folder);
+        if (currentUser.isLimitExceeded(totalSize)) {
+            throw new StorageQuotaExceededException(
+                    "Klasörü geri yüklemek için yeterli alanınız yok!"
+            );
+        }
+
+        currentUser.setUsedBytes(currentUser.getUsedBytes() + totalSize);
+        userDao.update(currentUser);
+
+        recursiveRestore(folder);
+    }
+
+    private long calculateDeletedFolderSize(Folder folder) {
+        long size = 0;
+        for (FileItem file : folder.getFiles()) {
+            if (file.isDeleted()) {
+                size += file.getFileSizeBytes();
+            }
+        }
+        for (Folder sub : folder.getChildren()) {
+            if (sub.isDeleted()) {
+                size += calculateDeletedFolderSize(sub);
+            }
+        }
+        return size;
+    }
+
+    private void recursiveRestore(Folder folder) {
         folder.setDeleted(false);
+        for (FileItem file : folder.getFiles()) {
+            file.setDeleted(false);
+        }
+        for (Folder sub : folder.getChildren()) {
+            recursiveRestore(sub);
+        }
     }
 
     @Transactional(readOnly = false)
@@ -171,9 +303,26 @@ public class FolderService {
         if (folder == null)
             throw new FolderNotFoundException("Klasör bulunamadı");
         if (!folder.getOwner().getId().equals(currentUser.getId()))
-            throw new tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.AccessDeniedException("Bu klasöre erişim yetkiniz yok");
+            throw new AccessDeniedException("Bu klasöre erişim yetkiniz yok");
 
+        // Önce MinIO'daki dosyaları temizle
+        recursivePermanentDelete(folder);
+        
+        // Sonra klasörü DB'den sil
         folderDao.delete(folder);
+    }
+
+    private void recursivePermanentDelete(Folder folder) {
+        for (FileItem file : folder.getFiles()) {
+            try {
+                minioService.deleteFile(file.getStoredName());
+            } catch (Exception e) {
+                // Hata loglanabilir
+            }
+        }
+        for (Folder sub : folder.getChildren()) {
+            recursivePermanentDelete(sub);
+        }
     }
 
     @Transactional(readOnly = false)

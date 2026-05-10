@@ -37,11 +37,8 @@ public class FileController {
             return folderId == null ? "redirect:/dashboard" : "redirect:/dashboard?folderId=" + folderId;
         }
 
-        try {
-            fileService.uploadFile(file, folderId, user);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        fileService.uploadFile(file, folderId, user);
+        redirectAttributes.addFlashAttribute("success", "Dosya başarıyla yüklendi.");
 
         return folderId == null ? "redirect:/dashboard" : "redirect:/dashboard?folderId=" + folderId;
     }
@@ -54,11 +51,8 @@ public class FileController {
 
         User user = (User) request.getAttribute("currentUser");
 
-        try {
-            fileService.softDeleteFile(fileId, user);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        fileService.softDeleteFile(fileId, user);
+        redirectAttributes.addFlashAttribute("success", "Dosya çöpe taşındı.");
 
         return folderId == null ? "redirect:/dashboard" : "redirect:/dashboard?folderId=" + folderId;
     }
@@ -72,11 +66,8 @@ public class FileController {
 
         User user = (User) request.getAttribute("currentUser");
 
-        try {
-            fileService.renameFile(fileId, newName, user);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        fileService.renameFile(fileId, newName, user);
+        redirectAttributes.addFlashAttribute("success", "Dosya adı güncellendi.");
 
         return folderId == null ? "redirect:/dashboard" : "redirect:/dashboard?folderId=" + folderId;
     }
@@ -86,11 +77,8 @@ public class FileController {
                           HttpServletRequest request,
                           RedirectAttributes redirectAttributes) {
         User user = (User) request.getAttribute("currentUser");
-        try {
-            fileService.restoreFile(fileId, user);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        fileService.restoreFile(fileId, user);
+        redirectAttributes.addFlashAttribute("success", "Dosya geri yüklendi.");
         return "redirect:/trash";
     }
 
@@ -99,18 +87,15 @@ public class FileController {
                                   HttpServletRequest request,
                                   RedirectAttributes redirectAttributes) {
         User user = (User) request.getAttribute("currentUser");
-        try {
-            fileService.permanentlyDeleteFile(fileId, user);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        fileService.permanentlyDeleteFile(fileId, user);
+        redirectAttributes.addFlashAttribute("success", "Dosya kalıcı olarak silindi.");
         return "redirect:/trash";
     }
 
     @GetMapping("/preview")
     public void previewFile(@RequestParam("fileId") Long fileId,
                             HttpServletRequest request,
-                            HttpServletResponse response) throws Exception {
+                            HttpServletResponse response) throws java.io.IOException {
         User user = (User) request.getAttribute("currentUser");
         FileItem file = fileService.getFileById(fileId, user);
         if (!file.canPreview()) {
@@ -128,7 +113,7 @@ public class FileController {
     @GetMapping("/download")
     public void downloadFile(@RequestParam("fileId") Long fileId,
                              HttpServletRequest request,
-                             HttpServletResponse response) throws Exception {
+                             HttpServletResponse response) throws java.io.IOException {
         User user = (User) request.getAttribute("currentUser");
         FileItem file = fileService.getFileById(fileId, user);
         response.setContentType("application/octet-stream");
@@ -146,11 +131,7 @@ public class FileController {
                              HttpServletRequest request,
                              RedirectAttributes redirectAttributes) {
         User user = (User) request.getAttribute("currentUser");
-        try {
-            fileService.toggleStar(fileId, user);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        fileService.toggleStar(fileId, user);
 
         if ("starred".equals(redirect)) return "redirect:/starred";
         return folderId == null ? "redirect:/dashboard" : "redirect:/dashboard?folderId=" + folderId;

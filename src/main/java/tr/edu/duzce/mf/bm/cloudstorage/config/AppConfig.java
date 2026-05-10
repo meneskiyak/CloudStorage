@@ -6,6 +6,7 @@ import static org.hibernate.cfg.SchemaToolingSettings.HBM2DDL_AUTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
@@ -22,13 +23,18 @@ public class AppConfig {
     private Environment env;
 
     @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
+    }
+
+    @Bean
     public LocalSessionFactoryBean getSessionFactory() {
         LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
         Properties props = new Properties();
-        props.put(DRIVER, env.getProperty("mysql.driver"));
-        props.put(URL, env.getProperty("mysql.url"));
-        props.put(USER, env.getProperty("mysql.user"));
-        props.put(PASS, env.getProperty("mysql.password"));
+        props.put(JAKARTA_JDBC_DRIVER, env.getProperty("mysql.driver"));
+        props.put(JAKARTA_JDBC_URL, env.getProperty("mysql.url"));
+        props.put(JAKARTA_JDBC_USER, env.getProperty("mysql.user"));
+        props.put(JAKARTA_JDBC_PASSWORD, env.getProperty("mysql.password"));
         props.put(SHOW_SQL, env.getProperty("hibernate.show_sql"));
         props.put(HBM2DDL_AUTO, env.getProperty("hibernate.hbm2ddl.auto"));
         props.put(DIALECT, env.getProperty("hibernate.dialect"));

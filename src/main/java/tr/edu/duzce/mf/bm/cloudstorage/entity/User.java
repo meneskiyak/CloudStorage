@@ -41,7 +41,6 @@ public class User implements Serializable {
     private String role = "USER";
 
     @Column(name = "created_at", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
 
     // Kullanıcının sahip olduğu klasörler — DAO sorgularında lazy yeterli
@@ -57,7 +56,6 @@ public class User implements Serializable {
     }
 
     @Column(name = "updated_at")
-    @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
 
     @PreUpdate

@@ -25,7 +25,6 @@ public class FolderController {
     public String createFolder(@RequestParam("name") String name,
                                @RequestParam(name = "parentId", required = false) Long parentId,
                                HttpServletRequest request,
-                               Model model,
                                RedirectAttributes redirectAttributes) {
 
         User currentUser = (User) request.getAttribute("currentUser");
@@ -40,11 +39,8 @@ public class FolderController {
         newFolder.setParent(parentFolder);
         newFolder.setOwner(currentUser);
 
-        try {
-            folderService.createFolder(newFolder);
-        } catch (FolderAlreadyExistsException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        folderService.createFolder(newFolder);
+        redirectAttributes.addFlashAttribute("success", "Klasör başarıyla oluşturuldu.");
 
         return parentId != null ? "redirect:/dashboard?folderId=" + parentId : "redirect:/dashboard";
     }
@@ -63,11 +59,8 @@ public class FolderController {
             parentFolder = folderService.getFolder(parentId);
         }
 
-        try {
-            folderService.uploadFolder(files, relativePaths, parentFolder, currentUser);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        folderService.uploadFolder(files, relativePaths, parentFolder, currentUser);
+        redirectAttributes.addFlashAttribute("success", "Klasör başarıyla yüklendi.");
 
         return parentId != null ? "redirect:/dashboard?folderId=" + parentId : "redirect:/dashboard";
     }
@@ -81,11 +74,8 @@ public class FolderController {
 
         User user = (User) request.getAttribute("currentUser");
 
-        try {
-            folderService.renameFolder(folderId, newName, user);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        folderService.renameFolder(folderId, newName, user);
+        redirectAttributes.addFlashAttribute("success", "Klasör adı güncellendi.");
 
         return parentId != null ? "redirect:/dashboard?folderId=" + parentId : "redirect:/dashboard";
     }
@@ -98,11 +88,8 @@ public class FolderController {
 
         User user = (User) request.getAttribute("currentUser");
 
-        try {
-            folderService.softDeleteFolder(folderId, user);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        folderService.softDeleteFolder(folderId, user);
+        redirectAttributes.addFlashAttribute("success", "Klasör çöpe taşındı.");
 
         return parentId != null ? "redirect:/dashboard?folderId=" + parentId : "redirect:/dashboard";
     }
@@ -112,11 +99,8 @@ public class FolderController {
                           HttpServletRequest request,
                           RedirectAttributes redirectAttributes) {
         User user = (User) request.getAttribute("currentUser");
-        try {
-            folderService.restoreFolder(folderId, user);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        folderService.restoreFolder(folderId, user);
+        redirectAttributes.addFlashAttribute("success", "Klasör geri yüklendi.");
         return "redirect:/trash";
     }
 
@@ -125,11 +109,8 @@ public class FolderController {
                                   HttpServletRequest request,
                                   RedirectAttributes redirectAttributes) {
         User user = (User) request.getAttribute("currentUser");
-        try {
-            folderService.permanentlyDeleteFolder(folderId, user);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        folderService.permanentlyDeleteFolder(folderId, user);
+        redirectAttributes.addFlashAttribute("success", "Klasör kalıcı olarak silindi.");
         return "redirect:/trash";
     }
 
@@ -140,11 +121,7 @@ public class FolderController {
                              HttpServletRequest request,
                              RedirectAttributes redirectAttributes) {
         User user = (User) request.getAttribute("currentUser");
-        try {
-            folderService.toggleStar(folderId, user);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        folderService.toggleStar(folderId, user);
 
         if ("starred".equals(redirect)) return "redirect:/starred";
         return parentId != null ? "redirect:/dashboard?folderId=" + parentId : "redirect:/dashboard";

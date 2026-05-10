@@ -13,8 +13,8 @@ public class WebAppInitializer implements WebApplicationInitializer {
     @Override
     public void onStartup(ServletContext servletContext) {
         AnnotationConfigWebApplicationContext context = getContext();
-        ServletRegistration.Dynamic dispatcherServlet = servletContext.addServlet("DispatcherServlet",
-                new DispatcherServlet(context));
+        DispatcherServlet dispatcher = new DispatcherServlet(context);
+        ServletRegistration.Dynamic dispatcherServlet = servletContext.addServlet("DispatcherServlet", dispatcher);
         dispatcherServlet.setLoadOnStartup(1);
         dispatcherServlet.addMapping("/");
         // 500 MB max dosya, 1 GB max istek
