@@ -21,7 +21,21 @@
     <lombok.version>1.18.42</lombok.version>
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
     <jjwt.version>0.11.5</jjwt.version>
+    <langchain4j.version>1.0.0-beta2</langchain4j.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>dev.langchain4j</groupId>
+        <artifactId>langchain4j-bom</artifactId>
+        <version>${langchain4j.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -266,6 +280,12 @@
       <artifactId>minio</artifactId>
       <version>8.5.17</version>
     </dependency>
+    <!-- Kotlin Stdlib (Required by MinIO/OkHttp) -->
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib</artifactId>
+      <version>1.9.22</version>
+    </dependency>
     <!-- Jakarta Annotation API (@PostConstruct) -->
     <dependency>
       <groupId>jakarta.annotation</groupId>
@@ -278,6 +298,42 @@
       <artifactId>lombok</artifactId>
       <version>${lombok.version}</version>
       <scope>provided</scope>
+    </dependency>
+
+
+    <!-- LangChain4j has an "Easy RAG" feature that makes it as easy as possible to get started with RAG -->
+    <!-- LangChain4j core -->
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j</artifactId>
+      <version>1.13.0</version>
+    </dependency>
+
+    <!-- Gemini (Google AI - API key ile, Vertex AI değil) -->
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-google-ai-gemini</artifactId>
+      <version>1.13.0</version>
+    </dependency>
+
+    <!-- Qdrant vector store -->
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-qdrant</artifactId>
+      <version>1.14.1-beta24</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>3.0.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-core</artifactId>
+      <version>1.13.0</version>
     </dependency>
     <!--  **********************************************************************
                   ** 				TESTING DEPENDENCIES 							 	**
@@ -325,7 +381,7 @@
     </dependency>
   </dependencies>
   <build>
-    <finalName>bm470</finalName>
+    <finalName>cloud-storage</finalName>
     <pluginManagement>
       <plugins>
         <plugin>

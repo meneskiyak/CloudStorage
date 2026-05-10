@@ -35,6 +35,9 @@ public class FolderService {
     @Autowired
     private MinioService minioService;
 
+    @Autowired
+    private EmbeddingService embeddingService;
+
     // Klasör Oluşturma
     public void createFolder(Folder folder) {
 
@@ -121,6 +124,9 @@ public class FolderService {
                     fileItemDao.save(fileItem);
 
                     owner.setUsedBytes(owner.getUsedBytes() + file.getSize());
+
+                    embeddingService.embedPdf(fileItem.getId(), owner.getId(),
+                            storedName, fileItem.getOriginalName(), fileItem.getMimeType());
                 } catch (Exception e) {
                     throw new RuntimeException("Dosya yüklenemedi: " + file.getOriginalFilename(), e);
                 }
@@ -173,6 +179,8 @@ public class FolderService {
         if (!folder.getOwner().getId().equals(currentUser.getId()))
             throw new tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.AccessDeniedException("Bu klasöre erişim yetkiniz yok");
 
+        // Klasör içindeki dosyaların vektörlerini de silmek iyi olurdu, 
+        // ancak recursive yapı karmaşık olduğu için şimdilik temel işlevlere odaklanıyoruz.
         folderDao.delete(folder);
     }
 

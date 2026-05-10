@@ -310,3 +310,5 @@
         });
     });
 </script>
+
+<%@ include file="_chat_widget.jsp" %>

@@ -35,6 +35,9 @@ public class FileService {
     @Autowired
     private FolderDao folderDao;
 
+    @Autowired
+    private EmbeddingService embeddingService;
+
     public List<FileItem> getUserFiles(Folder folder, User owner) {
         return fileItemDao.findFilesByFolderAndOwner(folder, owner);
     }
@@ -70,6 +73,9 @@ public class FileService {
         currentUser.setUsedBytes(currentUser.getUsedBytes() + multipartFile.getSize());
         userDao.update(currentUser);
         fileItemDao.save(fileItem);
+
+        embeddingService.embedPdf(fileItem.getId(), currentUser.getId(),
+                fileItem.getStoredName(), fileItem.getOriginalName(), fileItem.getMimeType());
     }
 
     @Transactional(readOnly = false)
@@ -112,6 +118,7 @@ public class FileService {
         currentUser.setUsedBytes(currentUser.getUsedBytes() + copy.getFileSizeBytes());
         userDao.update(currentUser);
         fileItemDao.save(copy);
+        
     }
 
     @Transactional(readOnly = false)
@@ -169,6 +176,7 @@ public class FileService {
         } catch (Exception e) {
             // Loglanabilir veya kullanıcıya bildirilebilir
         }
+        embeddingService.removeEmbeddings(file.getId());
         fileItemDao.delete(file);
     }
 
