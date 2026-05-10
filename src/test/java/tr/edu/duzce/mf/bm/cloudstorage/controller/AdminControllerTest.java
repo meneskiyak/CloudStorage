@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
+import tr.edu.duzce.mf.bm.cloudstorage.core.enums.Role;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 import tr.edu.duzce.mf.bm.cloudstorage.service.UserService;
 
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -49,11 +51,11 @@ public class AdminControllerTest {
 
         adminUser = new User();
         adminUser.setId(1L);
-        adminUser.setRole("ADMIN");
+        adminUser.setRole(Role.ADMIN);
 
         regularUser = new User();
         regularUser.setId(2L);
-        regularUser.setRole("USER");
+        regularUser.setRole(Role.USER);
     }
 
     @Test
@@ -105,5 +107,21 @@ public class AdminControllerTest {
                         .requestAttr("currentUser", adminUser))
                 .andExpect(status().isFound())
                 .andExpect(redirectedUrl("/admin/users?success=quota"));
+    }
+
+    @Test
+    @DisplayName("Kullanıcı rolü güncellenmeli")
+    void shouldUpdateRole() throws Exception {
+        // Kullanıcının rolü admin tarafından ID ile değiştirilebilmeli
+        User targetUser = new User();
+        targetUser.setId(10L);
+        when(userService.findById(10L)).thenReturn(targetUser);
+
+        mockMvc.perform(post("/admin/users/update-role")
+                        .param("userId", "10")
+                        .param("roleId", "0") // ADMIN ID
+                        .requestAttr("currentUser", adminUser))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/admin/users?success=role"));
     }
 }

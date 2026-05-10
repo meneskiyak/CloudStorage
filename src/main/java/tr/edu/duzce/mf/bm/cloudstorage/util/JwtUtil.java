@@ -45,7 +45,7 @@ public class JwtUtil {
      */
     public String generateToken(User user, long expiration) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", user.getRole());
+        claims.put("role", user.getRole().name());
         return createToken(claims, user.getEmail(), expiration);
     }
 

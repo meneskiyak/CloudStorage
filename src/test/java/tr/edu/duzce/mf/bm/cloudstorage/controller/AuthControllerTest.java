@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import tr.edu.duzce.mf.bm.cloudstorage.core.enums.Role;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 import tr.edu.duzce.mf.bm.cloudstorage.service.UserService;
 import tr.edu.duzce.mf.bm.cloudstorage.util.JwtUtil;
@@ -71,6 +72,7 @@ public class AuthControllerTest {
         // Doğru bilgilerle giriş yapıldığında JWT oluşturulmalı ve dashboard'a yönlendirilmeli
         User user = new User();
         user.setEmail("test@example.com");
+        user.setRole(Role.USER);
         
         when(userService.login("test@example.com", "password")).thenReturn(user);
         when(jwtUtil.generateToken(any(), anyLong())).thenReturn("mock-jwt-token");

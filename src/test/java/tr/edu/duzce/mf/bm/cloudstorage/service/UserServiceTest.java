@@ -13,6 +13,7 @@ import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.UserAlreadyExistsExceptio
 import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.UserNotFoundException;
 import tr.edu.duzce.mf.bm.cloudstorage.dao.FileItemDao;
 import tr.edu.duzce.mf.bm.cloudstorage.dao.UserDao;
+import tr.edu.duzce.mf.bm.cloudstorage.core.enums.Role;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 
 import java.util.*;
@@ -43,6 +44,7 @@ public class UserServiceTest {
         testUser.setPasswordHash(BCrypt.hashpw("Password123!", BCrypt.gensalt()));
         testUser.setUploadLimitBytes(1024L * 1024L); // 1 MB
         testUser.setUsedBytes(0L);
+        testUser.setRole(Role.USER);
     }
 
     @Test

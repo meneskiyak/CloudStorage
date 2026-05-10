@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import tr.edu.duzce.mf.bm.cloudstorage.core.enums.Role;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 import tr.edu.duzce.mf.bm.cloudstorage.service.UserService;
 
@@ -22,7 +23,7 @@ public class AdminController {
 
     @GetMapping("/dashboard")
     public String showAdminDashboard(@RequestAttribute(value = "currentUser", required = false) User user, Model model) {
-        if (user == null || !"ADMIN".equals(user.getRole())) {
+        if (user == null || user.getRole() != Role.ADMIN) {
             return "redirect:/login?unauthorized=true";
         }
         model.addAttribute("user", user); // _sidebar.jsp için 'user' gerekli
@@ -31,7 +32,7 @@ public class AdminController {
 
     @GetMapping("/stats")
     public String showStats(@RequestAttribute(value = "currentUser", required = false) User user, Model model) {
-        if (user == null || !"ADMIN".equals(user.getRole())) return "redirect:/login";
+        if (user == null || user.getRole() != Role.ADMIN) return "redirect:/login";
         
         java.util.Map<String, Object> stats = userService.getGlobalStats();
         
@@ -50,7 +51,7 @@ public class AdminController {
 
     @GetMapping("/users")
     public String listUsers(@RequestAttribute(value = "currentUser", required = false) User user, Model model) {
-        if (user == null || !"ADMIN".equals(user.getRole())) return "redirect:/login";
+        if (user == null || user.getRole() != Role.ADMIN) return "redirect:/login";
         
         model.addAttribute("user", user);
         List<User> allUsers = userService.findAllUsers();
@@ -59,10 +60,10 @@ public class AdminController {
     }
 
     @PostMapping("/users/update-role")
-    public String updateRole(@RequestParam("userId") Long userId, @RequestParam("role") String role) {
+    public String updateRole(@RequestParam("userId") Long userId, @RequestParam("roleId") Integer roleId) {
         User targetUser = userService.findById(userId);
         if (targetUser != null) {
-            targetUser.setRole(role);
+            targetUser.setRole(Role.fromId(roleId));
             userService.updateUser(targetUser);
         }
         return "redirect:/admin/users?success=role";

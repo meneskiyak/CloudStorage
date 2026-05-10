@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 import tr.edu.duzce.mf.bm.cloudstorage.service.FolderService;
+import tr.edu.duzce.mf.bm.cloudstorage.core.enums.Role;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
@@ -44,6 +45,7 @@ public class FolderControllerTest {
         testUser = new User();
         testUser.setId(1L);
         testUser.setEmail("test@example.com");
+        testUser.setRole(Role.USER);
     }
 
     @Test

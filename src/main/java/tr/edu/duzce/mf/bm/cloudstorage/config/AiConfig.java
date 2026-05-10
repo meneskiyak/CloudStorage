@@ -20,7 +20,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 @Configuration
-@PropertySource("classpath:ai.properties")
+@PropertySource(value = "classpath:ai.properties", ignoreResourceNotFound = true)
 public class AiConfig {
 
     @Autowired

@@ -13,6 +13,7 @@ import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.FolderNotFoundException;
 import tr.edu.duzce.mf.bm.cloudstorage.dao.FileItemDao;
 import tr.edu.duzce.mf.bm.cloudstorage.dao.FolderDao;
 import tr.edu.duzce.mf.bm.cloudstorage.dao.UserDao;
+import tr.edu.duzce.mf.bm.cloudstorage.core.enums.Role;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.FileItem;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.Folder;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
@@ -53,6 +54,7 @@ public class FolderServiceTest {
         testUser = new User();
         testUser.setId(1L);
         testUser.setEmail("user@example.com");
+        testUser.setRole(Role.USER);
 
         rootFolder = new Folder();
         rootFolder.setId(10L);

@@ -14,6 +14,7 @@ import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.StorageQuotaExceededExcep
 import tr.edu.duzce.mf.bm.cloudstorage.dao.FileItemDao;
 import tr.edu.duzce.mf.bm.cloudstorage.dao.FolderDao;
 import tr.edu.duzce.mf.bm.cloudstorage.dao.UserDao;
+import tr.edu.duzce.mf.bm.cloudstorage.core.enums.Role;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.FileItem;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.Folder;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
@@ -51,6 +52,7 @@ public class FileServiceTest {
         testUser.setEmail("user@example.com");
         testUser.setUploadLimitBytes(1024L * 1024L); // 1 MB
         testUser.setUsedBytes(0L);
+        testUser.setRole(Role.USER);
 
         testFolder = new Folder();
         testFolder.setId(10L);

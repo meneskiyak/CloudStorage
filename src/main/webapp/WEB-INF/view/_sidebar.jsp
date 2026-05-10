@@ -84,7 +84,7 @@
             <spring:message code="dashboard.menu.trash"/>
         </a>
 
-        <c:if test="${user.role == 'ADMIN'}">
+        <c:if test="${user.role.name() == 'ADMIN'}">
             <div class="border-top my-2 opacity-25"></div>
             <a class="nav-item-link ${activeNav == 'admin' ? 'active' : ''}"
                href="${pageContext.request.contextPath}/admin/dashboard">

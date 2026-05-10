@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import tr.edu.duzce.mf.bm.cloudstorage.core.enums.Role;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -36,9 +38,10 @@ public class User implements Serializable {
     @Column(name = "used_bytes", nullable = false)
     private Long usedBytes = 0L;
 
-    // ADMIN veya USER
-    @Column(name = "role", nullable = false, length = 20)
-    private String role = "USER";
+    // ADMIN (0) veya USER (1) - Ordinal ile tutulur
+    @Enumerated(EnumType.ORDINAL)
+    @Column(name = "role", nullable = false)
+    private Role role = Role.USER;
 
     @Column(name = "created_at", nullable = false)
     private Date createdAt;

@@ -38,7 +38,8 @@ public class QdrantInitializer {
                 logger.info("Qdrant collection zaten mevcut: {}", COLLECTION_NAME);
             }
         } catch (Exception e) {
-            throw new RuntimeException("Qdrant başlatılamadı", e);
+            logger.error("Qdrant bağlantısı kurulamadı. AI özellikleri çalışmayabilir: {}", e.getMessage());
+            // Uygulamanın çökmesini engellemek için hata fırlatmıyoruz
         }
     }
 }

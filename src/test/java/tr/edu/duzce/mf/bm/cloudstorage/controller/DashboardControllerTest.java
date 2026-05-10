@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
+import tr.edu.duzce.mf.bm.cloudstorage.core.enums.Role;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 import tr.edu.duzce.mf.bm.cloudstorage.service.FileService;
 import tr.edu.duzce.mf.bm.cloudstorage.service.FolderService;
@@ -52,6 +53,7 @@ public class DashboardControllerTest {
         testUser = new User();
         testUser.setId(1L);
         testUser.setEmail("test@example.com");
+        testUser.setRole(Role.USER);
     }
 
     @Test

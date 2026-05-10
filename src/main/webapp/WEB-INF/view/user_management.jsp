@@ -142,9 +142,9 @@
                         <td class="fw-medium">${u.fullName}</td>
                         <td class="text-secondary">${u.email}</td>
                         <td>
-                            <div class="role-chip ${u.role == 'ADMIN' ? 'role-chip-admin' : 'role-chip-user'}">
-                                <i class="bi ${u.role == 'ADMIN' ? 'bi-shield-check' : 'bi-person'} me-1"></i>
-                                ${u.role}
+                            <div class="role-chip ${u.role.name() == 'ADMIN' ? 'role-chip-admin' : 'role-chip-user'}">
+                                <i class="bi ${u.role.name() == 'ADMIN' ? 'bi-shield-check' : 'bi-person'} me-1"></i>
+                                ${u.role.name()}
                             </div>
                         </td>
                         <td>
@@ -169,11 +169,11 @@
                                 <%-- Rol Düzenleme --%>
                                 <form action="${pageContext.request.contextPath}/admin/users/update-role" method="POST" class="m-0">
                                     <input type="hidden" name="userId" value="${u.id}">
-                                    <select name="role" class="modern-select" 
+                                    <select name="roleId" class="modern-select" 
                                             onchange="this.form.submit()" 
                                             ${u.id == user.id ? 'disabled' : ''}>
-                                        <option value="USER" ${u.role == 'USER' ? 'selected' : ''}><spring:message code="admin.users.role.user"/></option>
-                                        <option value="ADMIN" ${u.role == 'ADMIN' ? 'selected' : ''}><spring:message code="admin.users.role.admin"/></option>
+                                        <option value="1" ${u.role.name() == 'USER' ? 'selected' : ''}><spring:message code="admin.users.role.user"/></option>
+                                        <option value="0" ${u.role.name() == 'ADMIN' ? 'selected' : ''}><spring:message code="admin.users.role.admin"/></option>
                                     </select>
                                     <c:if test="${u.id == user.id}">
                                         <span class="self-warning"><spring:message code="admin.users.role.selfWarning"/></span>

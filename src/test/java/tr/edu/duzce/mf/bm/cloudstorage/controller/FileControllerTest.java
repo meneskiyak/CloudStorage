@@ -14,6 +14,7 @@ import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 import tr.edu.duzce.mf.bm.cloudstorage.service.FileService;
 import tr.edu.duzce.mf.bm.cloudstorage.service.FolderService;
 import tr.edu.duzce.mf.bm.cloudstorage.service.MinioService;
+import tr.edu.duzce.mf.bm.cloudstorage.core.enums.Role;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
@@ -54,6 +55,7 @@ public class FileControllerTest {
         testUser = new User();
         testUser.setId(1L);
         testUser.setEmail("test@example.com");
+        testUser.setRole(Role.USER);
     }
 
     @Test
