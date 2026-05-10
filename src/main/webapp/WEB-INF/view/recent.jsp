@@ -5,7 +5,7 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="${pageContext.response.locale.language}">
 <head>
     <title><spring:message code="dashboard.menu.recent"/> - CloudStorage</title>
     <%@ include file="_layout_head.jsp" %>
@@ -18,7 +18,7 @@
 <main class="main">
     <div class="breadcrumb-area mb-4">
         <h4 class="mb-0"><spring:message code="dashboard.menu.recent"/></h4>
-        <div class="text-secondary small">Son güncellenen 5 öğe görüntüleniyor.</div>
+        <div class="text-secondary small"><spring:message code="dashboard.recent.desc"/></div>
     </div>
 
     <%-- Folders section --%>
@@ -83,7 +83,7 @@
     <c:if test="${empty folders and empty files}">
         <div class="empty-state">
             <i class="bi bi-clock-history"></i>
-            <p>Son kullanılan öğe bulunmuyor.</p>
+            <p><spring:message code="dashboard.recent.empty"/></p>
         </div>
     </c:if>
 </main>

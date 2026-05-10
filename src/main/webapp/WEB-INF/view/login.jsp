@@ -10,13 +10,13 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-4">
-            <h3 class="text-center mb-4">Sisteme Giriş</h3>
+            <h3 class="text-center mb-4"><spring:message code="auth.login.title"/></h3>
 
             <c:if test="${not empty param.registered}">
-                <div class="alert alert-success">Kayıt başarılı! Lütfen giriş yapın.</div>
+                <div class="alert alert-success"><spring:message code="auth.login.registered"/></div>
             </c:if>
             <c:if test="${not empty param.logout}">
-                <div class="alert alert-info">Başarıyla çıkış yaptınız.</div>
+                <div class="alert alert-info"><spring:message code="auth.login.logout"/></div>
             </c:if>
             <c:if test="${not empty error or not empty param.error}">
                 <div class="alert alert-danger">
@@ -31,22 +31,22 @@
                 <div class="card-body">
                     <form action="${pageContext.request.contextPath}/login" method="POST">
                         <div class="mb-3">
-                            <label class="form-label">Email Adresi</label>
+                            <label class="form-label"><spring:message code="auth.login.email"/></label>
                             <input type="email" name="email" class="form-control" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Şifre</label>
+                            <label class="form-label"><spring:message code="auth.login.password"/></label>
                             <input type="password" name="password" class="form-control" required>
                         </div>
                         <div class="mb-3 form-check">
                             <input type="checkbox" name="rememberMe" class="form-check-input" id="rememberMe">
-                            <label class="form-check-label" for="rememberMe">Beni Hatırla</label>
+                            <label class="form-check-label" for="rememberMe"><spring:message code="auth.login.rememberMe"/></label>
                         </div>
-                        <button type="submit" class="btn btn-success w-100">Giriş Yap</button>
+                        <button type="submit" class="btn btn-success w-100"><spring:message code="auth.login.submit"/></button>
                     </form>
                 </div>
             </div>
-            <p class="text-center mt-3">Hesabın yok mu? <a href="${pageContext.request.contextPath}/register">Kayıt Ol</a></p>
+            <p class="text-center mt-3"><spring:message code="auth.login.noAccount"/> <a href="${pageContext.request.contextPath}/register"><spring:message code="auth.login.registerNow"/></a></p>
         </div>
     </div>
 </div>

@@ -139,6 +139,32 @@ public class FileItemDao extends BaseDao<FileItem> {
         return getSession().createQuery(criteria).getResultList();
     }
 
+    public java.util.Map<String, Long> countFilesByMimeTypeGroup() {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery<Object[]> criteria = builder.createQuery(Object[].class);
+        Root<FileItem> root = criteria.from(FileItem.class);
+
+        // MIME tiplerini i18n anahtarlarına göre grupluyoruz
+        Expression<String> groupExpression = builder.selectCase()
+                .when(builder.like(root.get("mimeType"), "image/%"), "common.type.image")
+                .when(builder.like(root.get("mimeType"), "video/%"), "common.type.video")
+                .when(builder.equal(root.get("mimeType"), "application/pdf"), "common.type.document")
+                .when(builder.like(root.get("mimeType"), "%word%"), "common.type.document")
+                .when(builder.like(root.get("mimeType"), "%excel%"), "common.type.document")
+                .when(builder.like(root.get("mimeType"), "%sheet%"), "common.type.document")
+                .otherwise("common.type.other").as(String.class);
+
+        criteria.multiselect(groupExpression, builder.count(root));
+        criteria.groupBy(groupExpression);
+
+        List<Object[]> results = getSession().createQuery(criteria).getResultList();
+        java.util.Map<String, Long> counts = new java.util.HashMap<>();
+        for (Object[] result : results) {
+            counts.put((String) result[0], (Long) result[1]);
+        }
+        return counts;
+    }
+
     public List<FileItem> findRecentByOwner(User owner, int limit) {
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery<FileItem> criteria = createCriteriaQuery();
@@ -150,6 +176,16 @@ public class FileItemDao extends BaseDao<FileItem> {
                         builder.isFalse(root.get("deleted"))
                 )
         ).orderBy(builder.desc(root.get("updatedAt")));
+
+        return getSession().createQuery(criteria).setMaxResults(limit).getResultList();
+    }
+
+    public List<FileItem> findGlobalRecentItems(int limit) {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery<FileItem> criteria = createCriteriaQuery();
+        Root<FileItem> root = getRoot(criteria);
+
+        criteria.select(root).orderBy(builder.desc(root.get("updatedAt")));
 
         return getSession().createQuery(criteria).setMaxResults(limit).getResultList();
     }

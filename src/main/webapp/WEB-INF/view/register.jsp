@@ -15,7 +15,7 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-5">
-            <h3 class="text-center mb-4">Yeni Hesap Oluştur</h3>
+            <h3 class="text-center mb-4"><spring:message code="auth.register.title"/></h3>
 
             <c:if test="${not empty error or not empty param.error}">
                 <div class="alert alert-danger">
@@ -30,26 +30,26 @@
                 <div class="card-body">
                     <form id="registerForm" action="${pageContext.request.contextPath}/register" method="POST" novalidate>
                         <div class="mb-3">
-                            <label class="form-label">Ad Soyad</label>
+                            <label class="form-label"><spring:message code="auth.register.fullName"/></label>
                             <input type="text" name="fullName" class="form-control" value="${user.fullName}" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Email</label>
+                            <label class="form-label"><spring:message code="auth.login.email"/></label>
                             <input type="email" id="emailInput" name="email" class="form-control" value="${user.email}" required>
                             <div class="validation-msg" id="emailMsg">Geçersiz e-posta formatı!</div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Şifre</label>
+                            <label class="form-label"><spring:message code="auth.login.password"/></label>
                             <input type="password" id="passwordInput" name="passwordHash" class="form-control" required>
                             <div class="validation-msg" id="passwordMsg">
                                 Şifre en az 8 karakter; 1 büyük, 1 küçük harf, 1 rakam ve 1 özel karakter içermelidir.
                             </div>
                         </div>
-                        <button type="submit" id="submitBtn" class="btn btn-primary w-100 mt-2">Kayıt Ol</button>
+                        <button type="submit" id="submitBtn" class="btn btn-primary w-100 mt-2"><spring:message code="auth.register.submit"/></button>
                     </form>
                 </div>
             </div>
-            <p class="text-center mt-3">Zaten hesabın var mı? <a href="${pageContext.request.contextPath}/login">Giriş Yap</a></p>
+            <p class="text-center mt-3"><spring:message code="auth.register.hasAccount"/> <a href="${pageContext.request.contextPath}/login"><spring:message code="auth.register.loginNow"/></a></p>
         </div>
     </div>
 </div>

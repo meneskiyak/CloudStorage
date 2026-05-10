@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <%-- ══ TOPBAR ══ --%>
 <header class="topbar">
@@ -82,6 +83,15 @@
             <i class="bi bi-trash3${activeNav == 'trash' ? '-fill' : ''}"></i>
             <spring:message code="dashboard.menu.trash"/>
         </a>
+
+        <c:if test="${user.role == 'ADMIN'}">
+            <div class="border-top my-2 opacity-25"></div>
+            <a class="nav-item-link ${activeNav == 'admin' ? 'active' : ''}"
+               href="${pageContext.request.contextPath}/admin/dashboard">
+                <i class="bi bi-shield-lock${activeNav == 'admin' ? '-fill' : ''}"></i>
+                <spring:message code="dashboard.menu.admin"/>
+            </a>
+        </c:if>
     </nav>
 
     <c:if test="${user != null}">
@@ -140,7 +150,7 @@
                         <spring:message code="dashboard.modal.newFolder.name"/>
                     </label>
                     <input type="text" class="form-control" id="folderNameInput" name="name"
-                           placeholder="Klasör adı" required autofocus>
+                           placeholder="<spring:message code="dashboard.modal.newFolder.placeholder"/>" required autofocus>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">
@@ -200,7 +210,7 @@
             var files   = data.files   || [];
 
             if (folders.length === 0 && files.length === 0) {
-                dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:#5f6368;font-size:.9rem">Sonuç bulunamadı</div>';
+                dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:#5f6368;font-size:.9rem"><spring:message code="dashboard.search.noResults"/></div>';
                 dropdown.style.display = 'block';
                 return;
             }
@@ -219,7 +229,7 @@
             if (folders.length > 0) {
                 var lbl = document.createElement('div');
                 lbl.style.cssText = 'padding:8px 16px 4px;font-size:.75rem;font-weight:600;color:#5f6368;text-transform:uppercase;letter-spacing:.5px';
-                lbl.textContent = 'Klasörler';
+                lbl.textContent = '<spring:message code="dashboard.search.folders"/>';
                 dropdown.appendChild(lbl);
                 folders.forEach(function(f) {
                     dropdown.appendChild(makeItem('bi-folder-fill', f.name, ctx + '/dashboard?folderId=' + f.id));
@@ -234,7 +244,7 @@
                 }
                 var lbl2 = document.createElement('div');
                 lbl2.style.cssText = 'padding:8px 16px 4px;font-size:.75rem;font-weight:600;color:#5f6368;text-transform:uppercase;letter-spacing:.5px';
-                lbl2.textContent = 'Dosyalar';
+                lbl2.textContent = '<spring:message code="dashboard.search.files"/>';
                 dropdown.appendChild(lbl2);
                 files.forEach(function(f) {
                     var href = f.folderId ? ctx + '/dashboard?folderId=' + f.folderId : ctx + '/dashboard';

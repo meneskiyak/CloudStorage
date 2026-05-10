@@ -4,7 +4,7 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="${pageContext.response.locale.language}">
 <head>
     <title><spring:message code="search.title"/> - <spring:message code="app.name"/></title>
     <%@ include file="_layout_head.jsp" %>

@@ -4,7 +4,7 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="${pageContext.response.locale.language}">
 <head>
     <title><spring:message code="app.name"/></title>
     <%@ include file="_layout_head.jsp" %>
@@ -174,7 +174,7 @@
                                     <a class="dropdown-item small py-2" href="#"
                                        onclick="event.preventDefault(); event.stopPropagation();
                                                 openPreviewModal(${file.id}, '${fn:escapeXml(file.originalName)}', '${file.mimeType}')">
-                                        <i class="bi bi-eye me-2"></i>Önizle
+                                        <i class="bi bi-eye me-2"></i><spring:message code="common.preview"/>
                                     </a>
                                 </li>
                             </c:if>
@@ -274,11 +274,11 @@
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title w-100 text-center">
                         <i class="bi bi-exclamation-triangle-fill text-danger d-block mb-2" style="font-size: 2rem;"></i>
-                        <span>Silme Onayı</span>
+                        <span><spring:message code="dashboard.modal.delete.title"/></span>
                     </h5>
                 </div>
                 <div class="modal-body text-center pt-2">
-                    <p class="mb-0 text-secondary" id="deleteModalMessage">Bu öğeyi silmek istediğinize emin misiniz?</p>
+                    <p class="mb-0 text-secondary" id="deleteModalMessage"><spring:message code="dashboard.modal.delete.message"/></p>
                     <p class="fw-bold mt-2" id="deleteItemNameDisplay"></p>
                 </div>
                 <div class="modal-footer border-0 justify-content-center pb-4">
@@ -303,7 +303,7 @@
                     style="font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:600px;"></h6>
                 <div class="d-flex gap-2 ms-auto">
                     <a id="previewDownloadBtn" href="#" class="btn btn-sm btn-outline-light" style="font-size:0.8rem;">
-                        <i class="bi bi-download me-1"></i>İndir
+                        <i class="bi bi-download me-1"></i><spring:message code="common.download"/>
                     </a>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -425,11 +425,11 @@
         if (type === 'folder') {
             form.action = '${pageContext.request.contextPath}/folder/delete';
             idInput.name = 'folderId';
-            messageDisplay.innerText = 'Bu klasörü ve içeriğini silmek istediğinize emin misiniz?';
+            messageDisplay.innerText = '<spring:message code="dashboard.modal.delete.folderMessage"/>';
         } else {
             form.action = '${pageContext.request.contextPath}/file/delete';
             idInput.name = 'fileId';
-            messageDisplay.innerText = 'Bu dosyayı silmek istediğinize emin misiniz?';
+            messageDisplay.innerText = '<spring:message code="dashboard.modal.delete.fileMessage"/>';
         }
 
         idInput.value = id;
@@ -459,7 +459,7 @@
             img.className = 'preview-img';
             img.alt = fileName;
             img.onload = () => { body.innerHTML = ''; body.appendChild(img); };
-            img.onerror = () => { body.innerHTML = '<div class="text-center text-secondary p-5"><i class="bi bi-exclamation-triangle" style="font-size:3rem;"></i><p class="mt-3">Önizleme yüklenemedi.</p></div>'; };
+            img.onerror = () => { body.innerHTML = '<div class="text-center text-secondary p-5"><i class="bi bi-exclamation-triangle" style="font-size:3rem;"></i><p class="mt-3"><spring:message code="dashboard.preview.error"/></p></div>'; };
             img.src = previewUrl;
         } else if (mimeType === 'application/pdf') {
             body.innerHTML = '<iframe class="preview-pdf-frame" src="' + previewUrl + '" title="' + fileName + '"></iframe>';

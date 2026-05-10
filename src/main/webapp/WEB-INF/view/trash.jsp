@@ -4,7 +4,7 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="${pageContext.response.locale.language}">
 <head>
     <title><spring:message code="trash.title"/> - CloudStorage</title>
     <%@ include file="_layout_head.jsp" %>
@@ -54,8 +54,8 @@
                         <i class="bi bi-three-dots-vertical"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item small" href="#" onclick="event.stopPropagation(); openTrashActionModal('restore', 'folder', '${folder.id}', '${folder.name}')"><i class="bi bi-arrow-counterclockwise me-2"></i>Geri Yükle</a></li>
-                        <li><a class="dropdown-item small text-danger" href="#" onclick="event.stopPropagation(); openTrashActionModal('delete', 'folder', '${folder.id}', '${folder.name}')"><i class="bi bi-trash3 me-2"></i>Kalıcı Sil</a></li>
+                        <li><a class="dropdown-item small" href="#" onclick="event.stopPropagation(); openTrashActionModal('restore', 'folder', '${folder.id}', '${folder.name}')"><i class="bi bi-arrow-counterclockwise me-2"></i><spring:message code="common.restore"/></a></li>
+                        <li><a class="dropdown-item small text-danger" href="#" onclick="event.stopPropagation(); openTrashActionModal('delete', 'folder', '${folder.id}', '${folder.name}')"><i class="bi bi-trash3 me-2"></i><spring:message code="common.deletePermanent"/></a></li>
                     </ul>
                 </div>
             </c:forEach>
@@ -100,8 +100,8 @@
                         <i class="bi bi-three-dots-vertical"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item small" href="#" onclick="event.stopPropagation(); openTrashActionModal('restore', 'file', '${file.id}', '${file.originalName}')"><i class="bi bi-arrow-counterclockwise me-2"></i>Geri Yükle</a></li>
-                        <li><a class="dropdown-item small text-danger" href="#" onclick="event.stopPropagation(); openTrashActionModal('delete', 'file', '${file.id}', '${file.originalName}')"><i class="bi bi-trash3 me-2"></i>Kalıcı Sil</a></li>
+                        <li><a class="dropdown-item small" href="#" onclick="event.stopPropagation(); openTrashActionModal('restore', 'file', '${file.id}', '${file.originalName}')"><i class="bi bi-arrow-counterclockwise me-2"></i><spring:message code="common.restore"/></a></li>
+                        <li><a class="dropdown-item small text-danger" href="#" onclick="event.stopPropagation(); openTrashActionModal('delete', 'file', '${file.id}', '${file.originalName}')"><i class="bi bi-trash3 me-2"></i><spring:message code="common.deletePermanent"/></a></li>
                     </ul>
                 </div>
             </c:forEach>
@@ -116,7 +116,6 @@
     </c:if>
 </main>
 
-<%-- Modallar Dashboard.jsp'den kopyalanacak (Preview ve Action Modalları) --%>
 <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content" style="border-radius:12px; overflow:hidden;">
@@ -141,7 +140,7 @@
                     <p id="trashActionItemName" class="fw-bold"></p>
                 </div>
                 <div class="modal-footer border-0 justify-content-center pb-4">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"><spring:message code="common.cancel"/></button>
                     <button type="submit" id="trashActionButton" class="btn"></button>
                 </div>
             </form>
@@ -187,18 +186,18 @@
 
         if (action === 'restore') {
             form.action = '${pageContext.request.contextPath}/' + type + '/restore';
-            title.innerText = 'Geri Yükle';
-            message.innerText = 'Bu öğeyi orijinal konumuna geri yüklemek istediğinize emin misiniz?';
+            title.innerText = '<spring:message code="common.restore"/>';
+            message.innerText = '<spring:message code="trash.modal.restore.message"/>';
             icon.className = 'bi bi-arrow-counterclockwise text-primary';
             button.className = 'btn btn-primary';
-            button.innerText = 'Geri Yükle';
+            button.innerText = '<spring:message code="common.restore"/>';
         } else {
             form.action = '${pageContext.request.contextPath}/' + type + '/delete-permanent';
-            title.innerText = 'Kalıcı Olarak Sil';
-            message.innerText = 'Bu öğe kalıcı olarak silinecek ve geri alınamayacak. Emin misiniz?';
+            title.innerText = '<spring:message code="common.deletePermanent"/>';
+            message.innerText = '<spring:message code="trash.modal.deletePermanent.message"/>';
             icon.className = 'bi bi-exclamation-triangle-fill text-danger';
             button.className = 'btn btn-danger';
-            button.innerText = 'Kalıcı Sil';
+            button.innerText = '<spring:message code="common.deletePermanent"/>';
         }
         modal.show();
     }

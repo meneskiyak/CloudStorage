@@ -25,7 +25,7 @@ public class AdminController {
         if (user == null || !"ADMIN".equals(user.getRole())) {
             return "redirect:/login?unauthorized=true";
         }
-        model.addAttribute("adminUser", user);
+        model.addAttribute("user", user); // _sidebar.jsp için 'user' gerekli
         return "admin_dashboard";
     }
 
@@ -33,7 +33,18 @@ public class AdminController {
     public String showStats(@RequestAttribute(value = "currentUser", required = false) User user, Model model) {
         if (user == null || !"ADMIN".equals(user.getRole())) return "redirect:/login";
         
-        model.addAttribute("stats", userService.getGlobalStats());
+        java.util.Map<String, Object> stats = userService.getGlobalStats();
+        
+        // Aktiviteler için "ne kadar süre önce" bilgisini ekleyelim
+        List<tr.edu.duzce.mf.bm.cloudstorage.entity.FileItem> activities = (List<tr.edu.duzce.mf.bm.cloudstorage.entity.FileItem>) stats.get("recentActivities");
+        java.util.List<String> timeAgos = new java.util.ArrayList<>();
+        for (tr.edu.duzce.mf.bm.cloudstorage.entity.FileItem item : activities) {
+            timeAgos.add(userService.getTimeAgo(item.getUpdatedAt()));
+        }
+        model.addAttribute("timeAgos", timeAgos);
+        
+        model.addAttribute("user", user);
+        model.addAttribute("stats", stats);
         return "system_statistics";
     }
 
@@ -41,6 +52,7 @@ public class AdminController {
     public String listUsers(@RequestAttribute(value = "currentUser", required = false) User user, Model model) {
         if (user == null || !"ADMIN".equals(user.getRole())) return "redirect:/login";
         
+        model.addAttribute("user", user);
         List<User> allUsers = userService.findAllUsers();
         model.addAttribute("users", allUsers);
         return "user_management";
