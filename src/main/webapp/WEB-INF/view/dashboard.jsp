@@ -54,6 +54,11 @@
         <div class="folder-grid">
             <c:forEach var="folder" items="${folders}">
                 <div class="folder-card"
+                   draggable="true"
+                   ondragstart="handleDragStart(event, 'folder', '${folder.id}')"
+                   ondragover="handleDragOver(event, this)"
+                   ondragleave="handleDragLeave(this)"
+                   ondrop="handleDrop(event, this, '${folder.id}')"
                    onclick="location.href='${pageContext.request.contextPath}/dashboard?folderId=${folder.id}'">
                     <i class="bi bi-folder-fill folder-icon"></i>
                     <span class="folder-name">${folder.name}</span>
@@ -111,6 +116,8 @@
                 <c:set var="canPrev" value="${isImage or isPdf}"/>
 
                 <div class="folder-card ${canPrev ? 'has-thumb' : ''}"
+                     draggable="true"
+                     ondragstart="handleDragStart(event, 'file', '${file.id}')"
                      onclick="${canPrev ? 'openPreviewModal('.concat(file.id).concat(',\'').concat(fn:escapeXml(file.originalName)).concat('\',\'').concat(file.mimeType).concat('\')') : 'void(0)'}">
 
                     <%-- Thumbnail alanı --%>
@@ -297,6 +304,63 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    /* ── Drag & Drop ── */
+    function handleDragStart(e, type, id) {
+        e.dataTransfer.setData("type", type);
+        e.dataTransfer.setData("id", id);
+        e.dataTransfer.effectAllowed = "move";
+        // Sürüklenen öğeyi biraz şeffaf yap
+        setTimeout(() => e.target.style.opacity = "0.5", 0);
+    }
+
+    document.addEventListener("dragend", (e) => {
+        if (e.target.classList && e.target.classList.contains('folder-card')) {
+            e.target.style.opacity = "1";
+        }
+    });
+
+    function handleDragOver(e, el) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        el.classList.add('drag-over');
+    }
+
+    function handleDragLeave(el) {
+        el.classList.remove('drag-over');
+    }
+
+    function handleDrop(e, el, targetFolderId) {
+        e.preventDefault();
+        el.classList.remove('drag-over');
+
+        const type = e.dataTransfer.getData("type");
+        const id = e.dataTransfer.getData("id");
+
+        if (!type || !id) return;
+        if (type === 'folder' && id === targetFolderId) return;
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = type === 'folder' 
+            ? '${pageContext.request.contextPath}/folder/move' 
+            : '${pageContext.request.contextPath}/file/move';
+
+        const idParam = document.createElement('input');
+        idParam.type = 'hidden';
+        idParam.name = type === 'folder' ? 'folderId' : 'fileId';
+        idParam.value = id;
+        form.appendChild(idParam);
+
+        const targetParam = document.createElement('input');
+        targetParam.type = 'hidden';
+        targetParam.name = 'targetFolderId';
+        targetParam.value = targetFolderId;
+        form.appendChild(targetParam);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
     function switchModal(hideId, showId) {
         const hideEl = document.getElementById(hideId);
         const hideModal = bootstrap.Modal.getOrCreateInstance(hideEl);

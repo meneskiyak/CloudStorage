@@ -373,4 +373,11 @@
         border: none;
         display: block;
     }
+
+    /* ── Drag & Drop ── */
+    .folder-card.drag-over {
+        border: 2px dashed var(--accent) !important;
+        background: #e8f0fe !important;
+        transform: scale(1.02);
+    }
 </style>

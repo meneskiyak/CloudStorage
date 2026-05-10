@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.FileItem;
+import tr.edu.duzce.mf.bm.cloudstorage.entity.Folder;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 import tr.edu.duzce.mf.bm.cloudstorage.service.FileService;
+import tr.edu.duzce.mf.bm.cloudstorage.service.FolderService;
 import tr.edu.duzce.mf.bm.cloudstorage.service.MinioService;
 import java.io.InputStream;
 
@@ -20,6 +22,9 @@ public class FileController {
 
     @Autowired
     private FileService fileService;
+
+    @Autowired
+    private FolderService folderService;
 
     @Autowired
     private MinioService minioService;
@@ -135,5 +140,17 @@ public class FileController {
 
         if ("starred".equals(redirect)) return "redirect:/starred";
         return folderId == null ? "redirect:/dashboard" : "redirect:/dashboard?folderId=" + folderId;
+    }
+
+    @PostMapping("/move")
+    public String moveFile(@RequestParam("fileId") Long fileId,
+                           @RequestParam(value = "targetFolderId", required = false) Long targetFolderId,
+                           HttpServletRequest request,
+                           RedirectAttributes redirectAttributes) {
+        User user = (User) request.getAttribute("currentUser");
+        Folder targetFolder = targetFolderId != null ? folderService.getFolder(targetFolderId) : null;
+        fileService.moveFile(fileId, targetFolder, user);
+        redirectAttributes.addFlashAttribute("success", "Dosya başarıyla taşındı.");
+        return "redirect:/dashboard" + (targetFolderId != null ? "?folderId=" + targetFolderId : "");
     }
 }
