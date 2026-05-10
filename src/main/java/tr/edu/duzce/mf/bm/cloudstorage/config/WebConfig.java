@@ -104,7 +104,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // Dil değişimini izleyen interceptor'ı kaydediyoruz (Slayttaki gibi)
-        registry.addInterceptor(localeInterceptor()).addPathPatterns("/*");
+        registry.addInterceptor(localeInterceptor()).addPathPatterns("/**");
 
         // Aşama 3'te yazdığımız zorunlu Loglama Interceptor'ını kaydediyoruz
         registry.addInterceptor(new LoggingInterceptor())

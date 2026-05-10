@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <html>
 <head>
     <title>Bulut Depolama | Giriş Yap</title>
@@ -20,7 +21,7 @@
             <c:if test="${not empty error or not empty param.error}">
                 <div class="alert alert-danger">
                     <c:choose>
-                        <c:when test="${param.error == 'invalid'}">Hatalı email veya şifre!</c:when>
+                        <c:when test="${param.error == 'invalid'}"><spring:message code="error.invalid"/></c:when>
                         <c:otherwise>${error}</c:otherwise>
                     </c:choose>
                 </div>

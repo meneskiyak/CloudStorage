@@ -7,7 +7,7 @@
 <header class="topbar">
     <a class="topbar-brand" href="${pageContext.request.contextPath}/dashboard">
         <i class="bi bi-cloud-fill"></i>
-        <span><spring:message code="app.name"/></span>
+        <span>CloudStorage</span>
     </a>
     <div class="search-wrap d-none d-md-block" style="position:relative">
         <input type="search" id="globalSearchInput" class="search-input"
@@ -39,7 +39,7 @@
                     <div class="text-secondary text-truncate" style="font-size: 0.75rem; max-width: 150px;">${user.email}</div>
                 </li>
                 <li>
-                    <a class="dropdown-item" href="#">
+                    <a class="dropdown-item" href="${pageContext.request.contextPath}/settings">
                         <i class="bi bi-gear"></i><spring:message code="common.settings"/>
                     </a>
                 </li>

@@ -103,4 +103,12 @@ public class DashboardController {
 
         return "starred";
     }
+
+    @GetMapping("/settings")
+    public String settings(HttpServletRequest request, Model model) {
+        User currentUser = (User) request.getAttribute("currentUser");
+        model.addAttribute("user", currentUser);
+        model.addAttribute("activeNav", "settings");
+        return "settings";
+    }
 }

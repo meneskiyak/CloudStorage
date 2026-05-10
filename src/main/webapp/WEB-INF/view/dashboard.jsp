@@ -39,8 +39,8 @@
             <i class="bi ${not empty success ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2"></i>
             <c:choose>
                 <c:when test="${param.error == 'quota'}"><spring:message code="error.quota"/></c:when>
-                <c:when test="${param.error == 'maxSize'}">Dosya boyutu sınırı aşıldı!</c:when>
-                <c:when test="${param.error == 'invalid'}">Geçersiz işlem veya klasör!</c:when>
+                <c:when test="${param.error == 'maxSize'}"><spring:message code="error.maxSize"/></c:when>
+                <c:when test="${param.error == 'invalid'}"><spring:message code="error.invalid"/></c:when>
                 <c:when test="${not empty error}">${error}</c:when>
                 <c:when test="${not empty success}">${success}</c:when>
             </c:choose>

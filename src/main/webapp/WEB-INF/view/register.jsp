@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <html>
 <head>
     <title>Bulut Depolama | Kayıt Ol</title>
@@ -19,7 +20,7 @@
             <c:if test="${not empty error or not empty param.error}">
                 <div class="alert alert-danger">
                     <c:choose>
-                        <c:when test="${param.error == 'exists'}">Bu e-posta adresi zaten kullanımda!</c:when>
+                        <c:when test="${param.error == 'exists'}"><spring:message code="error.exists"/></c:when>
                         <c:otherwise>${error}</c:otherwise>
                     </c:choose>
                 </div>
