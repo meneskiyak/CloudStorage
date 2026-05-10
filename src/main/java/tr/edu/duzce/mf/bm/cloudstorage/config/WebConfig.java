@@ -83,7 +83,7 @@ public class WebConfig implements WebMvcConfigurer {
         return messageSource;
     }
 
-    // 2. Slayttaki "Session (Oturum) Locale Çözümleyicisi"
+    // Dil tercihlerinin aktif oturumda (Session) saklanması ve Türkçe yerelleştirme
     @Bean
     public SessionLocaleResolver localeResolver(){
         SessionLocaleResolver localeResolver = new SessionLocaleResolver();
