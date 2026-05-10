@@ -4,7 +4,8 @@
       "Bash(dir target *)",
       "Bash(mvn clean *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Berke\\\\Desktop\\\\dev\\\\CloudStorage\" -Recurse -Depth 2)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "WebSearch"
     ]
   }
 }

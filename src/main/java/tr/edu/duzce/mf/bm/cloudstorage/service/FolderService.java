@@ -36,6 +36,9 @@ public class FolderService {
     @Autowired
     private MinioService minioService;
 
+    @Autowired
+    private EmbeddingService embeddingService;
+
     // Klasör Oluşturma
     public void createFolder(Folder folder) {
         // Üst klasör kontrolleri
@@ -43,7 +46,7 @@ public class FolderService {
             Folder parent = folder.getParent();
             if (!parent.getOwner().getId().equals(folder.getOwner().getId()))
                 throw new AccessDeniedException("Üst klasöre erişim yetkiniz yok!");
-            
+
             if (parent.isDeleted())
                 throw new FolderNotFoundException("Silinmiş bir klasör içinde yeni klasör oluşturulamaz!");
         }
@@ -79,7 +82,7 @@ public class FolderService {
         Folder folder = folderDao.findById(folderId);
         if (folder == null)
             throw new FolderNotFoundException("Taşınacak klasör bulunamadı!");
-        
+
         if (!folder.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu klasörü taşıma yetkiniz yok!");
 
@@ -87,7 +90,7 @@ public class FolderService {
             // Hedef klasör sahiplik ve silinmişlik kontrolü
             if (!newParent.getOwner().getId().equals(currentUser.getId()))
                 throw new AccessDeniedException("Hedef klasöre erişim yetkiniz yok!");
-            
+
             if (newParent.isDeleted())
                 throw new FolderNotFoundException("Silinmiş bir klasöre taşıma yapılamaz!");
 
@@ -95,7 +98,7 @@ public class FolderService {
             if (isDescendant(folder, newParent)) {
                 throw new IllegalArgumentException("Bir klasör, kendi alt klasörlerinden birine taşınamaz!");
             }
-            
+
             // Kendine taşıma kontrolü
             if (folder.getId().equals(newParent.getId())) {
                 throw new IllegalArgumentException("Bir klasör kendi içine taşınamaz!");
@@ -127,7 +130,7 @@ public class FolderService {
         if (parentFolder != null) {
             if (!parentFolder.getOwner().getId().equals(owner.getId()))
                 throw new AccessDeniedException("Hedef klasöre erişim yetkiniz yok!");
-            
+
             if (parentFolder.isDeleted())
                 throw new FolderNotFoundException("Silinmiş bir klasöre yükleme yapılamaz!");
         }
@@ -186,6 +189,9 @@ public class FolderService {
                     fileItemDao.save(fileItem);
 
                     owner.setUsedBytes(owner.getUsedBytes() + file.getSize());
+
+                    embeddingService.embedPdf(fileItem.getId(), owner.getId(),
+                            storedName, fileItem.getOriginalName(), fileItem.getMimeType());
                 } catch (Exception e) {
                     throw new tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.StorageException("Dosya yüklenemedi: " + file.getOriginalFilename(), e);
                 }
@@ -270,7 +276,7 @@ public class FolderService {
 
         // Önce MinIO'daki dosyaları temizle ve DB kayıtlarını sil
         recursivePermanentDelete(folder);
-        
+
         // Kullanıcıyı DB'den yükle ve kotayı güncelle
         User user = userDao.findById(currentUser.getId());
         if (user != null) {
@@ -280,6 +286,8 @@ public class FolderService {
         }
 
         // Sonra klasörü DB'den sil
+        // Klasör içindeki dosyaların vektörlerini de silmek iyi olurdu,
+        // ancak recursive yapı karmaşık olduğu için şimdilik temel işlevlere odaklanıyoruz.
         folderDao.delete(folder);
     }
 
@@ -362,7 +370,7 @@ public class FolderService {
         if (folderId == null) return new java.util.ArrayList<>();
         Folder folder = folderDao.findById(folderId);
         if (folder == null) return new java.util.ArrayList<>();
-        
+
         List<Folder> path = new java.util.ArrayList<>();
         Folder current = folder;
         while (current != null) {

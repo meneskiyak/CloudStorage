@@ -15,6 +15,8 @@ import tr.edu.duzce.mf.bm.cloudstorage.service.FileService;
 import tr.edu.duzce.mf.bm.cloudstorage.service.FolderService;
 import tr.edu.duzce.mf.bm.cloudstorage.service.MinioService;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Controller
 @RequestMapping("/file")
@@ -110,14 +112,19 @@ public class FileController {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
+
+        String encodedFilename = URLEncoder.encode(file.getOriginalName(), StandardCharsets.UTF_8)
+                .replace("+", "%20");
+
         response.setContentType(file.getMimeType());
-        response.setHeader("Content-Disposition", "inline; filename=\"" + file.getOriginalName() + "\"");
+        response.setHeader("Content-Disposition",
+                "inline; filename*=UTF-8''" + encodedFilename);
         response.setContentLengthLong(file.getFileSizeBytes());
+
         try (InputStream in = minioService.downloadFile(file.getStoredName())) {
             StreamUtils.copy(in, response.getOutputStream());
         }
     }
-
     @GetMapping("/download")
     public void downloadFile(@RequestParam("fileId") Long fileId,
                              HttpServletRequest request,
