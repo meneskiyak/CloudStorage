@@ -67,4 +67,17 @@ public class Folder implements Serializable {
     public boolean isRoot() {
         return parent == null;
     }
+
+    /**
+     * Kök klasörden mevcut klasöre kadar olan tüm ebeveynleri içeren bir liste döndürür.
+     */
+    public List<Folder> getPath() {
+        List<Folder> path = new java.util.ArrayList<>();
+        Folder current = this;
+        while (current != null) {
+            path.add(0, current);
+            current = current.getParent();
+        }
+        return path;
+    }
 }

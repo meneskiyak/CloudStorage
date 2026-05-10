@@ -72,8 +72,9 @@
             <i class="bi bi-star${activeNav == 'starred' ? '-fill' : ''}"></i>
             <spring:message code="dashboard.menu.starred"/>
         </a>
-        <a class="nav-item-link" href="#">
-            <i class="bi bi-clock-history"></i>
+        <a class="nav-item-link ${activeNav == 'recent' ? 'active' : ''}"
+           href="${pageContext.request.contextPath}/recent">
+            <i class="bi bi-clock-history${activeNav == 'recent' ? '-fill' : ''}"></i>
             <spring:message code="dashboard.menu.recent"/>
         </a>
         <a class="nav-item-link ${activeNav == 'trash' ? 'active' : ''}"

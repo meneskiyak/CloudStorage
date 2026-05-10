@@ -103,6 +103,9 @@ public class FileController {
                             HttpServletResponse response) throws java.io.IOException {
         User user = (User) request.getAttribute("currentUser");
         FileItem file = fileService.getFileById(fileId, user);
+
+        fileService.touchFile(fileId, user); // Son kullanılanlara ekle/güncelle
+
         if (!file.canPreview()) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
@@ -121,6 +124,9 @@ public class FileController {
                              HttpServletResponse response) throws java.io.IOException {
         User user = (User) request.getAttribute("currentUser");
         FileItem file = fileService.getFileById(fileId, user);
+
+        fileService.touchFile(fileId, user); // Son kullanılanlara ekle/güncelle
+
         response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + file.getOriginalName() + "\"");
         response.setContentLengthLong(file.getFileSizeBytes());

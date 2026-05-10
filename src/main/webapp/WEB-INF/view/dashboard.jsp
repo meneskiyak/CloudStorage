@@ -26,9 +26,20 @@
                         <spring:message code="dashboard.breadcrumb.home"/>
                     </a>
                 </li>
-                <c:if test="${not empty currentFolder}">
-                    <li class="breadcrumb-item active">${currentFolder.name}</li>
-                </c:if>
+                <c:forEach var="pathFolder" items="${folderPath}">
+                    <c:choose>
+                        <c:when test="${pathFolder.id == currentFolder.id}">
+                            <li class="breadcrumb-item active">${pathFolder.name}</li>
+                        </c:when>
+                        <c:otherwise>
+                            <li class="breadcrumb-item">
+                                <a href="${pageContext.request.contextPath}/dashboard?folderId=${pathFolder.id}">
+                                    ${pathFolder.name}
+                                </a>
+                            </li>
+                        </c:otherwise>
+                    </c:choose>
+                </c:forEach>
             </ol>
         </nav>
     </div>

@@ -194,16 +194,6 @@ public class FolderService {
         userDao.update(owner);
     }
 
-    public void deleteFolder(Long folderId) throws Exception {
-        Folder folder = folderDao.findById(folderId);
-        if (folder == null) {
-            throw new Exception("Klasör bulunamadı!");
-        }
-
-        // Eğer klasör boş değilse silme gibi ek kontroller buraya yazılabilir
-        folderDao.delete(folder);
-    }
-
     @Transactional(readOnly = false)
     public void softDeleteFolder(Long folderId, User currentUser) {
         Folder folder = folderDao.findById(folderId);
@@ -212,28 +202,8 @@ public class FolderService {
         if (!folder.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu klasöre erişim yetkiniz yok");
 
-        // Klasör içindeki tüm dosyaları bul ve boyutlarını kotadan düş
-        long totalSize = calculateFolderSize(folder);
-        currentUser.setUsedBytes(Math.max(0, currentUser.getUsedBytes() - totalSize));
-        userDao.update(currentUser);
-
-        // Klasörü ve tüm alt öğelerini işaretle
+        // Çöp kutusundaki klasörler kota kaplamaya devam etsin diye buradan çıkarma işlemini kaldırdık.
         recursiveSoftDelete(folder);
-    }
-
-    private long calculateFolderSize(Folder folder) {
-        long size = 0;
-        for (FileItem file : folder.getFiles()) {
-            if (!file.isDeleted()) {
-                size += file.getFileSizeBytes();
-            }
-        }
-        for (Folder sub : folder.getChildren()) {
-            if (!sub.isDeleted()) {
-                size += calculateFolderSize(sub);
-            }
-        }
-        return size;
     }
 
     private void recursiveSoftDelete(Folder folder) {
@@ -258,17 +228,7 @@ public class FolderService {
         if (!folder.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu klasöre erişim yetkiniz yok");
 
-        // Geri yükleme için kota kontrolü
-        long totalSize = calculateDeletedFolderSize(folder);
-        if (currentUser.isLimitExceeded(totalSize)) {
-            throw new StorageQuotaExceededException(
-                    "Klasörü geri yüklemek için yeterli alanınız yok!"
-            );
-        }
-
-        currentUser.setUsedBytes(currentUser.getUsedBytes() + totalSize);
-        userDao.update(currentUser);
-
+        // Kota zaten düşülmediği için geri yüklemede kota kontrolüne ve eklemesine gerek yok.
         recursiveRestore(folder);
     }
 
@@ -305,23 +265,38 @@ public class FolderService {
         if (!folder.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu klasöre erişim yetkiniz yok");
 
-        // Önce MinIO'daki dosyaları temizle
+        // Kalıcı silinmeden önce bu klasörün (ve altındakilerin) toplam boyutunu hesapla
+        long totalSize = calculateDeletedFolderSize(folder);
+
+        // Önce MinIO'daki dosyaları temizle ve DB kayıtlarını sil
         recursivePermanentDelete(folder);
         
+        // Kullanıcıyı DB'den yükle ve kotayı güncelle
+        User user = userDao.findById(currentUser.getId());
+        if (user != null) {
+            user.setUsedBytes(Math.max(0, user.getUsedBytes() - totalSize));
+            userDao.update(user);
+            currentUser.setUsedBytes(user.getUsedBytes());
+        }
+
         // Sonra klasörü DB'den sil
         folderDao.delete(folder);
     }
 
     private void recursivePermanentDelete(Folder folder) {
+        // Dosyaları sil
         for (FileItem file : folder.getFiles()) {
             try {
                 minioService.deleteFile(file.getStoredName());
             } catch (Exception e) {
-                // Hata loglanabilir
+                // Loglanabilir
             }
+            fileItemDao.delete(file);
         }
+        // Alt klasörleri sil (recursion)
         for (Folder sub : folder.getChildren()) {
             recursivePermanentDelete(sub);
+            folderDao.delete(sub);
         }
     }
 
@@ -354,11 +329,46 @@ public class FolderService {
         folder.setStarred(!folder.isStarred());
     }
 
+    @Transactional(readOnly = false)
+    public void touchFolder(Long folderId, User currentUser) {
+        Folder folder = folderDao.findById(folderId);
+        if (folder != null && folder.getOwner().getId().equals(currentUser.getId())) {
+            folder.setUpdatedAt(new java.util.Date());
+            folderDao.update(folder);
+        }
+    }
+
     public List<Folder> getStarredFolders(User owner) {
         return folderDao.findStarredByOwner(owner);
     }
 
     public List<Folder> searchFolders(User owner, String keyword) {
         return folderDao.searchByName(keyword, owner);
+    }
+
+    public List<Folder> getSubFoldersInTrash(Folder parent, User owner) {
+        return folderDao.findByParentAndOwnerInTrash(parent, owner);
+    }
+
+    public List<Folder> getRecentFolders(User owner) {
+        return folderDao.findRecentByOwner(owner, 5);
+    }
+
+    /**
+     * Verilen klasörün tüm ebeveyn hiyerarşisini (breadcrumb için) yükler.
+     * Service katmanında çağrıldığı için Lazy loading sorunlarını önler.
+     */
+    public List<Folder> getFolderPath(Long folderId) {
+        if (folderId == null) return new java.util.ArrayList<>();
+        Folder folder = folderDao.findById(folderId);
+        if (folder == null) return new java.util.ArrayList<>();
+        
+        List<Folder> path = new java.util.ArrayList<>();
+        Folder current = folder;
+        while (current != null) {
+            path.add(0, current);
+            current = current.getParent(); // Transaction içinde olduğu için güvenli
+        }
+        return path;
     }
 }

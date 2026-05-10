@@ -7,10 +7,7 @@ import tr.edu.duzce.mf.bm.cloudstorage.entity.FileItem;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.Folder;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import java.util.List;
 
 @Repository
@@ -28,7 +25,7 @@ public class FileItemDao extends BaseDao<FileItem> {
         Root<FileItem> root = getRoot(criteria);
 
         Predicate ownerCondition = builder.equal(root.get("owner"), owner);
-        Predicate notDeletedCondition = builder.isFalse(root.get("deleted")); // isDeleted → deleted
+        Predicate notDeletedCondition = builder.isFalse(root.get("deleted"));
         Predicate folderCondition = (folder == null)
                 ? builder.isNull(root.get("folder"))
                 : builder.equal(root.get("folder"), folder);
@@ -46,7 +43,7 @@ public class FileItemDao extends BaseDao<FileItem> {
 
         Predicate finalPredicate = builder.and(
                 builder.equal(root.get("owner"), owner),
-                builder.isFalse(root.get("deleted")) // isDeleted → deleted
+                builder.isFalse(root.get("deleted"))
         );
 
         if (keyword != null && !keyword.trim().isEmpty()) {
@@ -72,11 +69,10 @@ public class FileItemDao extends BaseDao<FileItem> {
     }
 
     public void softDelete(FileItem fileItem) {
-        fileItem.setDeleted(true); // setIsDeleted → setDeleted
-        update(fileItem); // BaseDao'daki merge
+        fileItem.setDeleted(true);
+        update(fileItem);
     }
 
-    // Kullanıcının toplam kullandığı alanı hesaplamak için
     public List<FileItem> findAllByOwner(User owner) {
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery<FileItem> criteria = createCriteriaQuery();
@@ -94,11 +90,37 @@ public class FileItemDao extends BaseDao<FileItem> {
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery<FileItem> criteria = createCriteriaQuery();
         Root<FileItem> root = getRoot(criteria);
+        
+        // Klasör hiyerarşisini kontrol etmek için LEFT JOIN kullanıyoruz
+        Join<FileItem, Folder> folderJoin = root.join("folder", JoinType.LEFT);
+
+        // Şart: (is_deleted == true) VE (klasörü yoksa VEYA klasörü silinmemişse)
         criteria.select(root).where(
                 builder.and(
                         builder.equal(root.get("owner"), owner),
-                        builder.isTrue(root.get("deleted"))
+                        builder.isTrue(root.get("deleted")),
+                        builder.or(
+                                builder.isNull(root.get("folder")),
+                                builder.isFalse(folderJoin.get("deleted"))
+                        )
                 )
+        );
+        return getSession().createQuery(criteria).getResultList();
+    }
+
+    public List<FileItem> findByFolderAndOwnerInTrash(Folder folder, User owner) {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery<FileItem> criteria = createCriteriaQuery();
+        Root<FileItem> root = getRoot(criteria);
+
+        Predicate ownerCondition = builder.equal(root.get("owner"), owner);
+        Predicate deletedCondition = builder.isTrue(root.get("deleted"));
+        Predicate folderCondition = (folder == null)
+                ? builder.isNull(root.get("folder"))
+                : builder.equal(root.get("folder"), folder);
+
+        criteria.select(root).where(
+                builder.and(ownerCondition, deletedCondition, folderCondition)
         );
         return getSession().createQuery(criteria).getResultList();
     }
@@ -115,5 +137,20 @@ public class FileItemDao extends BaseDao<FileItem> {
                 )
         );
         return getSession().createQuery(criteria).getResultList();
+    }
+
+    public List<FileItem> findRecentByOwner(User owner, int limit) {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery<FileItem> criteria = createCriteriaQuery();
+        Root<FileItem> root = getRoot(criteria);
+
+        criteria.select(root).where(
+                builder.and(
+                        builder.equal(root.get("owner"), owner),
+                        builder.isFalse(root.get("deleted"))
+                )
+        ).orderBy(builder.desc(root.get("updatedAt")));
+
+        return getSession().createQuery(criteria).setMaxResults(limit).getResultList();
     }
 }

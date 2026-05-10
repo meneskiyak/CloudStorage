@@ -37,11 +37,13 @@ public class DashboardController {
         Folder currentFolder = null;
         if (folderId != null) {
             currentFolder = folderService.getFolder(folderId);
+            folderService.touchFolder(folderId, currentUser); // Klasöre girildiğinde 'touch' yap
         }
 
         model.addAttribute("folders", folderService.getSubFolders(currentFolder, currentUser));
         model.addAttribute("files", fileService.getUserFiles(currentFolder, currentUser));
         model.addAttribute("currentFolder", currentFolder);
+        model.addAttribute("folderPath", folderService.getFolderPath(folderId));
         model.addAttribute("user", currentUser);
         model.addAttribute("activeNav", "home");
 
@@ -49,11 +51,26 @@ public class DashboardController {
     }
 
     @GetMapping("/trash")
-    public String trash(HttpServletRequest request, Model model) {
+    public String trash(@RequestParam(name = "folderId", required = false) Long folderId,
+                        HttpServletRequest request, Model model) {
         User currentUser = (User) request.getAttribute("currentUser");
+        Folder currentFolder = null;
 
-        model.addAttribute("folders", folderService.getDeletedFolders(currentUser));
-        model.addAttribute("files", fileService.getDeletedFiles(currentUser));
+        if (folderId != null) {
+            currentFolder = folderService.getFolder(folderId);
+            // Sadece silinmiş klasörün içine girilebilsin
+            if (!currentFolder.isDeleted()) {
+                return "redirect:/dashboard?folderId=" + folderId;
+            }
+            model.addAttribute("folders", folderService.getSubFoldersInTrash(currentFolder, currentUser));
+            model.addAttribute("files", fileService.getFilesInTrash(currentFolder, currentUser));
+        } else {
+            model.addAttribute("folders", folderService.getDeletedFolders(currentUser));
+            model.addAttribute("files", fileService.getDeletedFiles(currentUser));
+        }
+
+        model.addAttribute("currentFolder", currentFolder);
+        model.addAttribute("folderPath", folderService.getFolderPath(folderId));
         model.addAttribute("user", currentUser);
         model.addAttribute("activeNav", "trash");
 
@@ -110,5 +127,17 @@ public class DashboardController {
         model.addAttribute("user", currentUser);
         model.addAttribute("activeNav", "settings");
         return "settings";
+    }
+
+    @GetMapping("/recent")
+    public String recent(HttpServletRequest request, Model model) {
+        User currentUser = (User) request.getAttribute("currentUser");
+
+        model.addAttribute("folders", folderService.getRecentFolders(currentUser));
+        model.addAttribute("files", fileService.getRecentFiles(currentUser));
+        model.addAttribute("user", currentUser);
+        model.addAttribute("activeNav", "recent");
+
+        return "recent";
     }
 }

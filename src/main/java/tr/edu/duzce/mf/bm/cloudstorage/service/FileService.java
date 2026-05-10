@@ -155,9 +155,7 @@ public class FileService {
         if (!file.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
 
-        // MinIO'da dosya kalır — çöp kutusundan kalıcı silme aşamasında kaldırılacak
-        currentUser.setUsedBytes(currentUser.getUsedBytes() - file.getFileSizeBytes());
-        userDao.update(currentUser);
+        // Çöp kutusundaki dosyalar kota kaplamaya devam etsin diye buradan çıkarma işlemini kaldırdık.
         fileItemDao.softDelete(file);
     }
 
@@ -184,13 +182,8 @@ public class FileService {
         if (!file.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
 
-        if (currentUser.isLimitExceeded(file.getFileSizeBytes())) {
-            throw new StorageQuotaExceededException("Dosyayı geri yüklemek için yeterli alanınız yok!");
-        }
-
+        // Kota zaten düşülmediği için geri yüklemede kota kontrolüne gerek yok.
         file.setDeleted(false);
-        currentUser.setUsedBytes(currentUser.getUsedBytes() + file.getFileSizeBytes());
-        userDao.update(currentUser);
     }
 
     @Transactional(readOnly = false)
@@ -201,11 +194,22 @@ public class FileService {
         if (!file.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
 
+        // MinIO'dan sil
         try {
             minioService.deleteFile(file.getStoredName());
         } catch (Exception e) {
-            // Loglanabilir veya kullanıcıya bildirilebilir
+            // Loglanabilir
         }
+
+        // Kullanıcıyı DB'den tekrar yükleyerek güncel kotayı alalım
+        User user = userDao.findById(currentUser.getId());
+        if (user != null) {
+            user.setUsedBytes(Math.max(0, user.getUsedBytes() - file.getFileSizeBytes()));
+            userDao.update(user);
+            // Mevcut session'daki currentUser nesnesini de güncelle (Controller'daki nesne)
+            currentUser.setUsedBytes(user.getUsedBytes());
+        }
+
         fileItemDao.delete(file);
     }
 
@@ -220,6 +224,15 @@ public class FileService {
         file.setStarred(!file.isStarred());
     }
 
+    @Transactional(readOnly = false)
+    public void touchFile(Long fileId, User currentUser) {
+        FileItem file = fileItemDao.findById(fileId);
+        if (file != null && file.getOwner().getId().equals(currentUser.getId())) {
+            file.setUpdatedAt(new java.util.Date());
+            fileItemDao.update(file);
+        }
+    }
+
     public List<FileItem> getStarredFiles(User owner) {
         return fileItemDao.findStarredByOwner(owner);
     }
@@ -231,5 +244,13 @@ public class FileService {
         if (!file.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
         return file;
+    }
+
+    public List<FileItem> getFilesInTrash(Folder folder, User owner) {
+        return fileItemDao.findByFolderAndOwnerInTrash(folder, owner);
+    }
+
+    public List<FileItem> getRecentFiles(User owner) {
+        return fileItemDao.findRecentByOwner(owner, 5);
     }
 }
