@@ -78,17 +78,29 @@
             <c:forEach var="file" items="${files}">
                 <c:set var="isImage" value="${fn:startsWith(file.mimeType, 'image/')}"/>
                 <c:set var="isPdf"   value="${file.mimeType == 'application/pdf'}"/>
-                <c:set var="canPrev" value="${isImage or isPdf}"/>
+                <c:set var="isVideo" value="${fn:startsWith(file.mimeType, 'video/')}"/>
+                <c:set var="isAudio" value="${fn:startsWith(file.mimeType, 'audio/')}"/>
+                <c:set var="canPrev" value="${isImage or isPdf or isVideo or isAudio}"/>
 
                 <div class="folder-card ${canPrev ? 'has-thumb' : ''}"
                      onclick="${canPrev ? 'openPreviewModal('.concat(file.id).concat(',\'').concat(fn:escapeXml(file.originalName)).concat('\',\'').concat(file.mimeType).concat('\')') : 'void(0)'}"
                      data-deleted-at="${file.deletedAt.time}">
-                    
+
                     <c:if test="${canPrev}">
                         <div class="file-thumb-wrap">
                             <c:choose>
                                 <c:when test="${isImage}">
                                     <img src="${pageContext.request.contextPath}/file/preview?fileId=${file.id}" alt="${file.originalName}" loading="lazy">
+                                </c:when>
+                                <c:when test="${isVideo}">
+                                    <div class="media-thumb-placeholder video-placeholder">
+                                        <i class="bi bi-play-circle-fill"></i>
+                                    </div>
+                                </c:when>
+                                <c:when test="${isAudio}">
+                                    <div class="media-thumb-placeholder audio-placeholder">
+                                        <i class="bi bi-music-note-beamed"></i>
+                                    </div>
                                 </c:when>
                                 <c:otherwise>
                                     <canvas class="pdf-thumb-canvas" data-pdf-url="${pageContext.request.contextPath}/file/preview?fileId=${file.id}"></canvas>
@@ -101,6 +113,8 @@
                         <c:choose>
                             <c:when test="${isImage}"><i class="bi bi-file-image folder-icon"></i></c:when>
                             <c:when test="${isPdf}"><i class="bi bi-file-pdf folder-icon" style="color:#ea4335;"></i></c:when>
+                            <c:when test="${isVideo}"><i class="bi bi-file-play folder-icon" style="color:#1a73e8;"></i></c:when>
+                            <c:when test="${isAudio}"><i class="bi bi-file-music folder-icon" style="color:#9c27b0;"></i></c:when>
                             <c:otherwise><i class="bi bi-file-earmark folder-icon"></i></c:otherwise>
                         </c:choose>
                         <span class="folder-name">${file.originalName}</span>
@@ -202,8 +216,28 @@
             img.onload = () => { body.innerHTML = ''; body.appendChild(img); };
         } else if (mimeType === 'application/pdf') {
             body.innerHTML = '<iframe class="preview-pdf-frame" src="' + previewUrl + '"></iframe>';
+        } else if (mimeType.startsWith('video/')) {
+            body.innerHTML = '<video class="preview-media" controls autoplay>' +
+                '<source src="' + previewUrl + '" type="' + mimeType + '">' +
+                '</video>';
+        } else if (mimeType.startsWith('audio/')) {
+            body.innerHTML = '<div class="d-flex flex-column align-items-center justify-content-center gap-4" style="padding:48px 40px;">' +
+                '<i class="bi bi-music-note-beamed" style="font-size:5rem; color:#9c27b0;"></i>' +
+                '<p class="text-white mb-0 text-center" style="font-size:0.95rem; opacity:0.8; max-width:380px; word-break:break-all;">' + fileName + '</p>' +
+                '<audio class="preview-audio" controls autoplay>' +
+                '<source src="' + previewUrl + '" type="' + mimeType + '">' +
+                '</audio></div>';
         }
     }
+
+    document.getElementById('previewModal').addEventListener('hidden.bs.modal', function () {
+        const body = document.getElementById('previewModalBody');
+        const video = body.querySelector('video');
+        const audio = body.querySelector('audio');
+        if (video) video.pause();
+        if (audio) audio.pause();
+        body.innerHTML = '';
+    });
 
     function openTrashActionModal(action, type, id, name) {
         const modal = new bootstrap.Modal(document.getElementById('trashActionModal'));

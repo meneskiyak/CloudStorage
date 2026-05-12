@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import tr.edu.duzce.mf.bm.cloudstorage.core.enums.Role;
+import tr.edu.duzce.mf.bm.cloudstorage.core.exceptions.AccessDeniedException;
 import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 import tr.edu.duzce.mf.bm.cloudstorage.service.UserService;
 
@@ -24,7 +25,7 @@ public class AdminController {
     @GetMapping("/dashboard")
     public String showAdminDashboard(@RequestAttribute(value = "currentUser", required = false) User user, Model model) {
         if (user == null || user.getRole() != Role.ADMIN) {
-            return "redirect:/login?unauthorized=true";
+            throw new AccessDeniedException("Bu sayfaya erişim yetkiniz yok.");
         }
         model.addAttribute("user", user); // _sidebar.jsp için 'user' gerekli
         return "admin_dashboard";
@@ -32,7 +33,7 @@ public class AdminController {
 
     @GetMapping("/stats")
     public String showStats(@RequestAttribute(value = "currentUser", required = false) User user, Model model) {
-        if (user == null || user.getRole() != Role.ADMIN) return "redirect:/login";
+        if (user == null || user.getRole() != Role.ADMIN) throw new AccessDeniedException("Bu sayfaya erişim yetkiniz yok.");
         
         java.util.Map<String, Object> stats = userService.getGlobalStats();
         
@@ -51,7 +52,7 @@ public class AdminController {
 
     @GetMapping("/users")
     public String listUsers(@RequestAttribute(value = "currentUser", required = false) User user, Model model) {
-        if (user == null || user.getRole() != Role.ADMIN) return "redirect:/login";
+        if (user == null || user.getRole() != Role.ADMIN) throw new AccessDeniedException("Bu sayfaya erişim yetkiniz yok.");
         
         model.addAttribute("user", user);
         List<User> allUsers = userService.findAllUsers();

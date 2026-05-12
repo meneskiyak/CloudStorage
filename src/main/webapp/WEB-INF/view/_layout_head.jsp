@@ -244,7 +244,7 @@
 
     .folder-card:hover { background: #f1f3f4; color: #3c4043; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
     .folder-card i.folder-icon { font-size: 1.4rem; color: #5f6368; flex-shrink: 0; }
-    .folder-card .folder-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .folder-card .folder-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .folder-card .card-menu-btn {
         opacity: 1;
@@ -373,6 +373,29 @@
         border: none;
         display: block;
     }
+    #previewModal .preview-media {
+        max-width: 100%;
+        max-height: 75vh;
+        display: block;
+        margin: 0 auto;
+        background: #000;
+    }
+    #previewModal .preview-audio {
+        width: 100%;
+        max-width: 480px;
+        min-width: 320px;
+        height: 54px;
+    }
+    .media-thumb-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.8rem;
+    }
+    .video-placeholder { background: #1a1a2e; color: #1a73e8; }
+    .audio-placeholder { background: #1a0a2e; color: #9c27b0; }
 
     /* ── Drag & Drop ── */
     .folder-card.drag-over {

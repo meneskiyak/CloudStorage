@@ -74,10 +74,12 @@ public class FileItem implements Serializable {
         updatedAt = new Date();
     }
 
-    // Tarayıcıda inline gösterilebilir mi? (resim, PDF)
     @Transient
     public boolean canPreview() {
         if (mimeType == null) return false;
-        return mimeType.startsWith("image/") || mimeType.equals("application/pdf");
+        return mimeType.startsWith("image/")
+                || mimeType.equals("application/pdf")
+                || mimeType.startsWith("video/")
+                || mimeType.startsWith("audio/");
     }
 }

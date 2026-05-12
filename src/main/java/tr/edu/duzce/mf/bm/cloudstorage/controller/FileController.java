@@ -134,8 +134,11 @@ public class FileController {
 
         fileService.touchFile(fileId, user); // Son kullanılanlara ekle/güncelle
 
+        String encodedFilename = URLEncoder.encode(file.getOriginalName(), StandardCharsets.UTF_8)
+                .replace("+", "%20");
         response.setContentType("application/octet-stream");
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + file.getOriginalName() + "\"");
+        response.setHeader("Content-Disposition",
+                "attachment; filename*=UTF-8''" + encodedFilename);
         response.setContentLengthLong(file.getFileSizeBytes());
         try (InputStream in = minioService.downloadFile(file.getStoredName())) {
             StreamUtils.copy(in, response.getOutputStream());
