@@ -94,11 +94,10 @@ public class FolderDao extends BaseDao<Folder> {
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery<Folder> criteria = createCriteriaQuery();
         Root<Folder> root = getRoot(criteria);
-        
-        // Üst hiyerarşiyi kontrol etmek için LEFT JOIN
+
         Join<Folder, Folder> parentJoin = root.join("parent", JoinType.LEFT);
 
-        // Şart: (is_deleted == true) VE (üst klasörü yoksa VEYA üst klasörü silinmemişse)
+
         criteria.select(root).where(
                 builder.and(
                         builder.equal(root.get("owner"), owner),

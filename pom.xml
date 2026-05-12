@@ -12,7 +12,7 @@
     <maven.compiler.source>18</maven.compiler.source>
     <maven.compiler.target>18</maven.compiler.target>
     <spring.framework.version>6.2.7</spring.framework.version>
-    <mysql.driver.version>9.6.0</mysql.driver.version>
+    <mysql.driver.version>8.0.33</mysql.driver.version>
     <hibernate.version>6.6.13.Final</hibernate.version>
     <c3p0.version>0.12.0</c3p0.version>
     <slf4j.version>2.0.17</slf4j.version>
@@ -127,6 +127,12 @@
       <groupId>com.mysql</groupId>
       <artifactId>mysql-connector-j</artifactId>
       <version>${mysql.driver.version}</version>
+    </dependency>
+    <!-- Protobuf Java (Explicit version to resolve conflict between MySQL and Qdrant) -->
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>3.25.5</version>
     </dependency>
     <!-- net.sf.json-lib -->
     <dependency>

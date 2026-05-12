@@ -114,7 +114,6 @@ public class FileService {
         if (!original.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu dosyaya erişim yetkiniz yok");
 
-        // Hedef klasör kontrolleri
         if (targetFolder != null) {
             if (!targetFolder.getOwner().getId().equals(currentUser.getId()))
                 throw new AccessDeniedException("Hedef klasöre erişim yetkiniz yok!");
