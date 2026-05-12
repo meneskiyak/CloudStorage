@@ -39,9 +39,8 @@ public class FolderService {
     @Autowired
     private EmbeddingService embeddingService;
 
-    // Klasör Oluşturma
+
     public void createFolder(Folder folder) {
-        // Üst klasör kontrolleri
         if (folder.getParent() != null) {
             Folder parent = folder.getParent();
             if (!parent.getOwner().getId().equals(folder.getOwner().getId()))
@@ -65,7 +64,6 @@ public class FolderService {
         folderDao.save(folder);
     }
 
-    // Alt Klasörleri Getirme
     public List<Folder> getSubFolders(Folder parent, User owner) {
         return folderDao.findByParentAndOwner(parent, owner);
     }
@@ -77,7 +75,7 @@ public class FolderService {
         return folder;
     }
 
-    // Klasör Taşıma (Parent'ı Değiştirme)
+
     public void moveFolder(Long folderId, Folder newParent, User currentUser) {
         Folder folder = folderDao.findById(folderId);
         if (folder == null)
@@ -94,12 +92,10 @@ public class FolderService {
             if (newParent.isDeleted())
                 throw new FolderNotFoundException("Silinmiş bir klasöre taşıma yapılamaz!");
 
-            // Sonsuz döngü (Circular Reference) kontrolü
             if (isDescendant(folder, newParent)) {
                 throw new IllegalArgumentException("Bir klasör, kendi alt klasörlerinden birine taşınamaz!");
             }
 
-            // Kendine taşıma kontrolü
             if (folder.getId().equals(newParent.getId())) {
                 throw new IllegalArgumentException("Bir klasör kendi içine taşınamaz!");
             }
@@ -151,16 +147,13 @@ public class FolderService {
             String relativePath = relativePaths.get(i); // örn: "photos/vacation/img.jpg"
 
             String[] parts = relativePath.split("/");
-            // Son eleman dosya adı, öncekiler klasör segmentleri
             Folder currentParent = parentFolder;
 
             for (int j = 0; j < parts.length - 1; j++) {
                 String segmentName = parts[j];
-                // Cache key: parent id (null ise "root") + segment adı
                 String cacheKey = (currentParent != null ? currentParent.getId() : "root") + "/" + segmentName;
 
                 if (!folderCache.containsKey(cacheKey)) {
-                    // Bu segment daha önce oluşturulmadıysa oluştur
                     Folder segment = new Folder();
                     segment.setName(segmentName);
                     segment.setParent(currentParent);
@@ -171,7 +164,6 @@ public class FolderService {
                 currentParent = folderCache.get(cacheKey);
             }
 
-            // Dosyayı MinIO'ya yükle ve DB'ye kaydet
             if (!file.isEmpty()) {
                 try {
                     String storedName = minioService.uploadFile(file);
@@ -208,7 +200,7 @@ public class FolderService {
         if (!folder.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu klasöre erişim yetkiniz yok");
 
-        // Çöp kutusundaki klasörler kota kaplamaya devam etsin diye buradan çıkarma işlemini kaldırdık.
+
         recursiveSoftDelete(folder);
     }
 
@@ -234,7 +226,6 @@ public class FolderService {
         if (!folder.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu klasöre erişim yetkiniz yok");
 
-        // Kota zaten düşülmediği için geri yüklemede kota kontrolüne ve eklemesine gerek yok.
         recursiveRestore(folder);
     }
 
@@ -271,13 +262,10 @@ public class FolderService {
         if (!folder.getOwner().getId().equals(currentUser.getId()))
             throw new AccessDeniedException("Bu klasöre erişim yetkiniz yok");
 
-        // Kalıcı silinmeden önce bu klasörün (ve altındakilerin) toplam boyutunu hesapla
         long totalSize = calculateDeletedFolderSize(folder);
 
-        // Önce MinIO'daki dosyaları temizle ve DB kayıtlarını sil
         recursivePermanentDelete(folder);
 
-        // Kullanıcıyı DB'den yükle ve kotayı güncelle
         User user = userDao.findById(currentUser.getId());
         if (user != null) {
             user.setUsedBytes(Math.max(0, user.getUsedBytes() - totalSize));
@@ -285,23 +273,17 @@ public class FolderService {
             currentUser.setUsedBytes(user.getUsedBytes());
         }
 
-        // Sonra klasörü DB'den sil
-        // Klasör içindeki dosyaların vektörlerini de silmek iyi olurdu,
-        // ancak recursive yapı karmaşık olduğu için şimdilik temel işlevlere odaklanıyoruz.
         folderDao.delete(folder);
     }
 
     private void recursivePermanentDelete(Folder folder) {
-        // Dosyaları sil
         for (FileItem file : folder.getFiles()) {
             try {
                 minioService.deleteFile(file.getStoredName());
             } catch (Exception e) {
-                // Loglanabilir
             }
             fileItemDao.delete(file);
         }
-        // Alt klasörleri sil (recursion)
         for (Folder sub : folder.getChildren()) {
             recursivePermanentDelete(sub);
             folderDao.delete(sub);
@@ -375,7 +357,7 @@ public class FolderService {
         Folder current = folder;
         while (current != null) {
             path.add(0, current);
-            current = current.getParent(); // Transaction içinde olduğu için güvenli
+            current = current.getParent();
         }
         return path;
     }

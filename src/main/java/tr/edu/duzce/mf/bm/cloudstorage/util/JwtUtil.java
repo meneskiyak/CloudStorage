@@ -20,13 +20,10 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // Güvenlik anahtarı - Gerçek senaryoda bu değer external bir config dosyasından okunmalıdır.
     private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    
-    // Varsayılan token geçerlilik süresi: 1 saat
+
     private static final long DEFAULT_EXPIRATION = 1000 * 60 * 60;
-    
-    // Hatırla beni süresi: 7 gün
+
     public static final long REMEMBER_ME_EXPIRATION = 1000 * 60 * 60 * 24 * 7;
 
     /**

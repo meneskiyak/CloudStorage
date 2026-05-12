@@ -37,9 +37,9 @@ public class QdrantInitializer {
             } else {
                 logger.info("Qdrant collection zaten mevcut: {}", COLLECTION_NAME);
             }
-        } catch (Exception e) {
-            logger.error("Qdrant bağlantısı kurulamadı. AI özellikleri çalışmayabilir: {}", e.getMessage());
-            // Uygulamanın çökmesini engellemek için hata fırlatmıyoruz
+        } catch (Throwable t) {
+            logger.error("Qdrant bağlantısı kurulamadı veya bir hata oluştu. AI özellikleri çalışmayabilir: {}", t.getMessage());
+            // Uygulamanın çökmesini engellemek için Throwable yakalıyoruz (NoClassDefFoundError gibi durumlar için)
         }
     }
 }

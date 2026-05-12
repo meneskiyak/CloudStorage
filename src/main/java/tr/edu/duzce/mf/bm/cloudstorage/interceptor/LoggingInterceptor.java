@@ -8,12 +8,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class LoggingInterceptor implements HandlerInterceptor {
 
     // Slaytlardaki birebir LoggerFactory kullanımı
     private static final Logger logger = LoggerFactory.getLogger(LoggingInterceptor.class);
+
+    // Gizlenmesi gereken hassas alanlar
+    private static final List<String> SENSITIVE_FIELDS = Arrays.asList("password", "passwordHash", "token", "secret");
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -22,7 +27,13 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
         StringBuilder params = new StringBuilder();
         paramMap.forEach((key, values) -> {
-            params.append(key).append("=").append(String.join(",", values)).append("; ");
+            String value;
+            if (SENSITIVE_FIELDS.stream().anyMatch(key::equalsIgnoreCase)) {
+                value = "[PROTECTED]";
+            } else {
+                value = String.join(",", values);
+            }
+            params.append(key).append("=").append(value).append("; ");
         });
 
         logger.info(">>> ISTEK | URI: {} | Parametreler: {}", uri, params.length() > 0 ? params.toString() : "Yok");
