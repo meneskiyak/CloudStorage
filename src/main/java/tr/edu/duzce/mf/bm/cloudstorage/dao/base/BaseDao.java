@@ -61,15 +61,4 @@ public abstract class BaseDao<T> {
         criteria.from(entityClass);
         return getSession().createQuery(criteria).getResultList();
     }
-
-    /**
-     * Veritabanı bağlantısının aktif olup olmadığını kontrol eder.
-     */
-    public boolean checkConnection() {
-        try {
-            return getSession().createNativeQuery("SELECT 1", Integer.class).getSingleResult() != null;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 }

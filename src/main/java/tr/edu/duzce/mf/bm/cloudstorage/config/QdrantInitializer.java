@@ -39,7 +39,6 @@ public class QdrantInitializer {
             }
         } catch (Exception e) {
             logger.error("Qdrant bağlantısı kurulamadı. AI özellikleri çalışmayabilir: {}", e.getMessage());
-            // Uygulamanın çökmesini engellemek için hata fırlatmıyoruz
         }
     }
 }

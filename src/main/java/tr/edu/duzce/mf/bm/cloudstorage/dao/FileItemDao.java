@@ -9,6 +9,7 @@ import tr.edu.duzce.mf.bm.cloudstorage.entity.User;
 
 import jakarta.persistence.criteria.*;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class FileItemDao extends BaseDao<FileItem> {
@@ -139,7 +140,7 @@ public class FileItemDao extends BaseDao<FileItem> {
         return getSession().createQuery(criteria).getResultList();
     }
 
-    public java.util.Map<String, Long> countFilesByMimeTypeGroup() {
+    public Map<String, Long> countFilesByMimeTypeGroup() {
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery<Object[]> criteria = builder.createQuery(Object[].class);
         Root<FileItem> root = criteria.from(FileItem.class);
