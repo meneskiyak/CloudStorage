@@ -21,6 +21,7 @@ public class FolderDao extends BaseDao<Folder> {
 
     public void softDelete(Folder folder) {
         folder.setDeleted(true);
+        folder.setDeletedAt(new java.util.Date());
         update(folder);
     }
 
@@ -120,6 +121,20 @@ public class FolderDao extends BaseDao<Folder> {
                         builder.equal(root.get("owner"), owner),
                         builder.isFalse(root.get("deleted")),
                         builder.isTrue(root.get("starred"))
+                )
+        );
+        return getSession().createQuery(criteria).getResultList();
+    }
+
+    public List<Folder> findExpiredFromTrash(java.util.Date cutoff) {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery<Folder> criteria = createCriteriaQuery();
+        Root<Folder> root = getRoot(criteria);
+        criteria.select(root).where(
+                builder.and(
+                        builder.isTrue(root.get("deleted")),
+                        builder.isNotNull(root.get("deletedAt")),
+                        builder.lessThan(root.get("deletedAt"), cutoff)
                 )
         );
         return getSession().createQuery(criteria).getResultList();

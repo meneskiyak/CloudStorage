@@ -137,19 +137,46 @@
             font-size: 0.75rem;
             margin-top: 4px;
             display: none;
-        }
-
-        .is-invalid + .validation-msg {
-            display: block;
             color: #d93025;
         }
 
-        /* Material Design Input States */
-        .is-valid {
-            border-color: #1e8e3e !important;
+        .validation-msg.visible {
+            display: block;
         }
-        .is-invalid {
+
+        /* Bootstrap'in kendi ikonunu bastır, sadece border rengini kullan */
+        .input-state-valid {
+            border-color: #1e8e3e !important;
+            background-image: none !important;
+        }
+        .input-state-invalid {
             border-color: #d93025 !important;
+            background-image: none !important;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper .form-control {
+            padding-right: 42px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #5f6368;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .toggle-password:hover {
+            color: var(--google-blue);
         }
     </style>
 </head>
@@ -181,7 +208,8 @@
     <form id="registerForm" action="${pageContext.request.contextPath}/register" method="POST" novalidate>
         <div class="mb-3">
             <label class="form-label"><spring:message code="auth.register.fullName"/></label>
-            <input type="text" name="fullName" class="form-control" value="${user.fullName}" required placeholder="John Doe">
+            <input type="text" id="fullNameInput" name="fullName" class="form-control" value="${user.fullName}" required placeholder="John Doe">
+            <div class="validation-msg" id="fullNameMsg">Ad Soyad boş bırakılamaz!</div>
         </div>
         
         <div class="mb-3">
@@ -192,7 +220,12 @@
 
         <div class="mb-3">
             <label class="form-label"><spring:message code="auth.login.password"/></label>
-            <input type="password" id="passwordInput" name="passwordHash" class="form-control" required placeholder="••••••••">
+            <div class="password-wrapper">
+                <input type="password" id="passwordInput" name="passwordHash" class="form-control" required placeholder="••••••••">
+                <button type="button" class="toggle-password" onclick="toggleVisibility('passwordInput', this)">
+                    <i class="fa-solid fa-eye"></i>
+                </button>
+            </div>
             <div class="validation-msg" id="passwordMsg">
                 Şifre en az 8 karakter; 1 büyük, 1 küçük harf, 1 rakam ve 1 özel karakter içermelidir.
             </div>
@@ -200,8 +233,13 @@
 
         <div class="mb-3">
             <label class="form-label"><spring:message code="auth.register.confirmPassword"/></label>
-            <input type="password" id="confirmPasswordInput" class="form-control" required placeholder="••••••••">
-            <div class="validation-msg text-danger" id="confirmPasswordMsg">
+            <div class="password-wrapper">
+                <input type="password" id="confirmPasswordInput" class="form-control" required placeholder="••••••••">
+                <button type="button" class="toggle-password" onclick="toggleVisibility('confirmPasswordInput', this)">
+                    <i class="fa-solid fa-eye"></i>
+                </button>
+            </div>
+            <div class="validation-msg" id="confirmPasswordMsg">
                 <spring:message code="auth.register.passwordMismatch"/>
             </div>
         </div>
@@ -220,51 +258,54 @@
 </div>
 
 <script>
+    const fullNameInput = document.getElementById('fullNameInput');
     const emailInput = document.getElementById('emailInput');
     const passwordInput = document.getElementById('passwordInput');
     const confirmPasswordInput = document.getElementById('confirmPasswordInput');
     const confirmPasswordMsg = document.getElementById('confirmPasswordMsg');
     const submitBtn = document.getElementById('submitBtn');
-    
+
     const emailRegex = /^[A-Za-z0-9çğıöşüÇĞİÖŞÜ+_.-]+@(.+)$/;
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|_<>\/-]).{8,}$/;
 
+    function toggleVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    function setFieldState(input, msgEl, isValid, hasValue) {
+        input.classList.remove('input-state-valid', 'input-state-invalid');
+        if (hasValue) {
+            input.classList.add(isValid ? 'input-state-valid' : 'input-state-invalid');
+        }
+        if (msgEl) {
+            msgEl.classList.toggle('visible', hasValue && !isValid);
+        }
+    }
+
     function validate() {
+        const isFullNameValid = fullNameInput.value.trim().length > 0;
         const isEmailValid = emailRegex.test(emailInput.value);
         const isPasswordValid = passwordRegex.test(passwordInput.value);
         const passwordsMatch = passwordInput.value === confirmPasswordInput.value;
         const isConfirmNotEmpty = confirmPasswordInput.value.length > 0;
-        
-        // Email UI
-        if (emailInput.value.length > 0) {
-            emailInput.classList.toggle('is-invalid', !isEmailValid);
-            emailInput.classList.toggle('is-valid', isEmailValid);
-        } else {
-            emailInput.classList.remove('is-invalid', 'is-valid');
-        }
 
-        // Password UI
-        if (passwordInput.value.length > 0) {
-            passwordInput.classList.toggle('is-invalid', !isPasswordValid);
-            passwordInput.classList.toggle('is-valid', isPasswordValid);
-        } else {
-            passwordInput.classList.remove('is-invalid', 'is-valid');
-        }
+        setFieldState(fullNameInput, document.getElementById('fullNameMsg'), isFullNameValid, fullNameInput.value.length > 0);
+        setFieldState(emailInput, document.getElementById('emailMsg'), isEmailValid, emailInput.value.length > 0);
+        setFieldState(passwordInput, document.getElementById('passwordMsg'), isPasswordValid, passwordInput.value.length > 0);
+        setFieldState(confirmPasswordInput, document.getElementById('confirmPasswordMsg'), passwordsMatch, isConfirmNotEmpty);
 
-        // Confirm Password UI
-        if (isConfirmNotEmpty) {
-            confirmPasswordInput.classList.toggle('is-invalid', !passwordsMatch);
-            confirmPasswordInput.classList.toggle('is-valid', passwordsMatch);
-            confirmPasswordMsg.style.display = passwordsMatch ? 'none' : 'block';
-        } else {
-            confirmPasswordInput.classList.remove('is-invalid', 'is-valid');
-            confirmPasswordMsg.style.display = 'none';
-        }
-
-        // Submit Button state
-        submitBtn.disabled = !(isEmailValid && isPasswordValid && passwordsMatch && isConfirmNotEmpty);
+        submitBtn.disabled = !(isFullNameValid && isEmailValid && isPasswordValid && passwordsMatch && isConfirmNotEmpty);
     }
 
+    fullNameInput.addEventListener('input', validate);
     emailInput.addEventListener('input', validate);
     passwordInput.addEventListener('input', validate);
     confirmPasswordInput.addEventListener('input', validate);

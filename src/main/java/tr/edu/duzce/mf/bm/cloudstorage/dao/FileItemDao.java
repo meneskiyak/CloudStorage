@@ -71,6 +71,7 @@ public class FileItemDao extends BaseDao<FileItem> {
 
     public void softDelete(FileItem fileItem) {
         fileItem.setDeleted(true);
+        fileItem.setDeletedAt(new java.util.Date());
         update(fileItem);
     }
 
@@ -164,6 +165,20 @@ public class FileItemDao extends BaseDao<FileItem> {
             counts.put((String) result[0], (Long) result[1]);
         }
         return counts;
+    }
+
+    public List<FileItem> findExpiredFromTrash(java.util.Date cutoff) {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaQuery<FileItem> criteria = createCriteriaQuery();
+        Root<FileItem> root = getRoot(criteria);
+        criteria.select(root).where(
+                builder.and(
+                        builder.isTrue(root.get("deleted")),
+                        builder.isNotNull(root.get("deletedAt")),
+                        builder.lessThan(root.get("deletedAt"), cutoff)
+                )
+        );
+        return getSession().createQuery(criteria).getResultList();
     }
 
     public List<FileItem> findRecentByOwner(User owner, int limit) {

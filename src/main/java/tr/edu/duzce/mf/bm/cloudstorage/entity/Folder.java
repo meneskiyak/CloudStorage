@@ -53,6 +53,9 @@ public class Folder implements Serializable {
     @Column(name = "updated_at")
     private Date updatedAt;
 
+    @Column(name = "deleted_at")
+    private Date deletedAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = new Date();

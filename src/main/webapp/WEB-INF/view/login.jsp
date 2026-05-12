@@ -130,6 +130,31 @@
             font-size: 0.85rem;
             color: #5f6368;
         }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper .form-control {
+            padding-right: 42px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #5f6368;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .toggle-password:hover {
+            color: var(--google-blue);
+        }
     </style>
 </head>
 <body>
@@ -176,7 +201,12 @@
         </div>
         <div class="mb-3">
             <label class="form-label"><spring:message code="auth.login.password"/></label>
-            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+            <div class="password-wrapper">
+                <input type="password" id="loginPasswordInput" name="password" class="form-control" placeholder="••••••••" required>
+                <button type="button" class="toggle-password" onclick="toggleLoginPassword()">
+                    <i class="fa-solid fa-eye"></i>
+                </button>
+            </div>
         </div>
         <div class="mb-3 form-check">
             <input type="checkbox" name="rememberMe" class="form-check-input" id="rememberMe">
@@ -197,5 +227,18 @@
     </div>
 </div>
 
+<script>
+    function toggleLoginPassword() {
+        const input = document.getElementById('loginPasswordInput');
+        const icon = document.querySelector('.toggle-password i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+</script>
 </body>
 </html>

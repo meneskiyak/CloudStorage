@@ -130,12 +130,13 @@ public class FolderController {
     @PostMapping("/move")
     public String moveFolder(@RequestParam("folderId") Long folderId,
                              @RequestParam(value = "targetFolderId", required = false) Long targetFolderId,
+                             @RequestParam(value = "sourceFolderId", required = false) Long sourceFolderId,
                              HttpServletRequest request,
                              RedirectAttributes redirectAttributes) {
         User user = (User) request.getAttribute("currentUser");
         Folder targetFolder = targetFolderId != null ? folderService.getFolder(targetFolderId) : null;
         folderService.moveFolder(folderId, targetFolder, user);
         redirectAttributes.addFlashAttribute("success", "Klasör başarıyla taşındı.");
-        return "redirect:/dashboard" + (targetFolderId != null ? "?folderId=" + targetFolderId : "");
+        return "redirect:/dashboard" + (sourceFolderId != null ? "?folderId=" + sourceFolderId : "");
     }
 }

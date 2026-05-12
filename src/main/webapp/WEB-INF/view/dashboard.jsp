@@ -368,6 +368,12 @@
         targetParam.value = targetFolderId;
         form.appendChild(targetParam);
 
+        const sourceParam = document.createElement('input');
+        sourceParam.type = 'hidden';
+        sourceParam.name = 'sourceFolderId';
+        sourceParam.value = '${currentFolder.id}';
+        form.appendChild(sourceParam);
+
         document.body.appendChild(form);
         form.submit();
     }

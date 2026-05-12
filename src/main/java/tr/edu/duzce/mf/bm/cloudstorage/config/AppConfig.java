@@ -11,6 +11,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.Properties;
@@ -18,6 +19,7 @@ import java.util.Properties;
 @PropertySource(value = "classpath:hibernate.properties", encoding = "UTF-8")
 @EnableTransactionManagement
 @EnableAsync
+@EnableScheduling
 @Configuration
 @ComponentScan(basePackages = {"tr.edu.duzce.mf.bm.cloudstorage"})
 public class AppConfig {

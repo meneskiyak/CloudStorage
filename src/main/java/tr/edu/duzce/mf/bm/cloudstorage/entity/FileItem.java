@@ -57,6 +57,9 @@ public class FileItem implements Serializable {
     @Column(name = "updated_at")
     private Date updatedAt;
 
+    @Column(name = "deleted_at")
+    private Date deletedAt;
+
     // DİKKAT: @OneToMany(mappedBy = "file") kısmı KESİNLİKLE kaldırıldı
     // Çünkü Share sınıfında 'file' adında bir değişken yok, 'resourceId' var.
 

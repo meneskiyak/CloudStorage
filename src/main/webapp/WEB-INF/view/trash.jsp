@@ -42,14 +42,23 @@
         </nav>
     </div>
 
+    <%-- 30 gün uyarı banner --%>
+    <c:if test="${not empty folders or not empty files}">
+        <div class="alert alert-warning d-flex align-items-center gap-2 mb-4 py-2 px-3" style="font-size:0.85rem; border-radius:8px;">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+            <span>Çöp kutusundaki öğeler <strong>30 gün</strong> sonra otomatik olarak kalıcı silinir.</span>
+        </div>
+    </c:if>
+
     <%-- Folders section --%>
     <c:if test="${not empty folders}">
         <div class="section-title"><spring:message code="dashboard.section.folders"/></div>
         <div class="folder-grid">
             <c:forEach var="folder" items="${folders}">
-                <div class="folder-card" onclick="location.href='${pageContext.request.contextPath}/trash?folderId=${folder.id}'">
+                <div class="folder-card" onclick="location.href='${pageContext.request.contextPath}/trash?folderId=${folder.id}'" data-deleted-at="${folder.deletedAt.time}">
                     <i class="bi bi-folder-fill folder-icon"></i>
                     <span class="folder-name">${folder.name}</span>
+                    <span class="days-left-badge"></span>
                     <button class="card-menu-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
                         <i class="bi bi-three-dots-vertical"></i>
                     </button>
@@ -72,7 +81,8 @@
                 <c:set var="canPrev" value="${isImage or isPdf}"/>
 
                 <div class="folder-card ${canPrev ? 'has-thumb' : ''}"
-                     onclick="${canPrev ? 'openPreviewModal('.concat(file.id).concat(',\'').concat(fn:escapeXml(file.originalName)).concat('\',\'').concat(file.mimeType).concat('\')') : 'void(0)'}">
+                     onclick="${canPrev ? 'openPreviewModal('.concat(file.id).concat(',\'').concat(fn:escapeXml(file.originalName)).concat('\',\'').concat(file.mimeType).concat('\')') : 'void(0)'}"
+                     data-deleted-at="${file.deletedAt.time}">
                     
                     <c:if test="${canPrev}">
                         <div class="file-thumb-wrap">
@@ -95,6 +105,7 @@
                         </c:choose>
                         <span class="folder-name">${file.originalName}</span>
                     </div>
+                    <span class="days-left-badge"></span>
 
                     <button class="card-menu-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
                         <i class="bi bi-three-dots-vertical"></i>
@@ -148,6 +159,30 @@
     </div>
 </div>
 
+<style>
+    .days-left-badge {
+        display: none;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 1px 7px;
+        border-radius: 20px;
+        margin-top: 4px;
+        white-space: nowrap;
+        align-self: flex-start;
+    }
+    .days-left-badge.urgent {
+        background: #fce8e6;
+        color: #c5221f;
+    }
+    .days-left-badge.warning {
+        background: #fef7e0;
+        color: #b45309;
+    }
+    .days-left-badge.ok {
+        background: #e6f4ea;
+        color: #1e7e34;
+    }
+</style>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     function openPreviewModal(fileId, fileName, mimeType) {
@@ -201,6 +236,25 @@
         }
         modal.show();
     }
+
+    document.querySelectorAll('.folder-card[data-deleted-at]').forEach(card => {
+        const deletedAt = parseInt(card.dataset.deletedAt, 10);
+        if (!deletedAt) return;
+        const daysLeft = Math.ceil((deletedAt + 30 * 24 * 60 * 60 * 1000 - Date.now()) / (24 * 60 * 60 * 1000));
+        const badge = card.querySelector('.days-left-badge');
+        if (!badge) return;
+        badge.style.display = 'inline-block';
+        if (daysLeft <= 3) {
+            badge.classList.add('urgent');
+            badge.textContent = daysLeft <= 0 ? 'Bugün silinecek' : daysLeft + ' gün kaldı';
+        } else if (daysLeft <= 10) {
+            badge.classList.add('warning');
+            badge.textContent = daysLeft + ' gün kaldı';
+        } else {
+            badge.classList.add('ok');
+            badge.textContent = daysLeft + ' gün kaldı';
+        }
+    });
 </script>
 <script type="module">
     import { getDocument, GlobalWorkerOptions } from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs';

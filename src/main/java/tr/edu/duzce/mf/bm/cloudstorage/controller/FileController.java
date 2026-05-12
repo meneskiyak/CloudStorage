@@ -158,12 +158,13 @@ public class FileController {
     @PostMapping("/move")
     public String moveFile(@RequestParam("fileId") Long fileId,
                            @RequestParam(value = "targetFolderId", required = false) Long targetFolderId,
+                           @RequestParam(value = "sourceFolderId", required = false) Long sourceFolderId,
                            HttpServletRequest request,
                            RedirectAttributes redirectAttributes) {
         User user = (User) request.getAttribute("currentUser");
         Folder targetFolder = targetFolderId != null ? folderService.getFolder(targetFolderId) : null;
         fileService.moveFile(fileId, targetFolder, user);
         redirectAttributes.addFlashAttribute("success", "Dosya başarıyla taşındı.");
-        return "redirect:/dashboard" + (targetFolderId != null ? "?folderId=" + targetFolderId : "");
+        return "redirect:/dashboard" + (sourceFolderId != null ? "?folderId=" + sourceFolderId : "");
     }
 }
